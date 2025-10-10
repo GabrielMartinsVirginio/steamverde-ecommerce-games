@@ -9,16 +9,21 @@ import {
   Chip,
   ActivityIndicator,
   Text,
-  FAB
+  FAB,
+  Badge,
+  Snackbar
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useJogos } from '../../utils/useJogos';
+import { useCarrinhoContext } from '../components/authProvider/ProvedorCarrinho';
 
 const TelaListaJogos = () => {
   const navigation = useNavigation();
   const { jogos, carregando, buscarJogos } = useJogos();
+  const { adicionarAoCarrinho, verificarSeEstaNoCarrinho, calcularQuantidadeTotal } = useCarrinhoContext();
   const [atualizando, setAtualizando] = useState(false);
+  const [snackbar, setSnackbar] = useState({ visivel: false, mensagem: '' });
 
   const carregarJogos = async () => {
     setAtualizando(true);
@@ -47,6 +52,18 @@ const TelaListaJogos = () => {
     navigation.navigate('CadastroJogo', { jogo });
   };
 
+  const adicionarJogoAoCarrinho = (jogo) => {
+    adicionarAoCarrinho(jogo);
+    setSnackbar({ 
+      visivel: true, 
+      mensagem: `${jogo.nome} adicionado ao carrinho!` 
+    });
+  };
+
+  const navegarParaCarrinho = () => {
+    navigation.navigate('Carrinho');
+  };
+
   const renderizarJogo = ({ item: jogo }) => (
     <Card style={estilos.cartaoJogo} onPress={() => navegarParaDetalhe(jogo)}>
       <Card.Content>
@@ -73,6 +90,20 @@ const TelaListaJogos = () => {
           <Text style={estilos.preco}>{formatarPreco(jogo.preco)}</Text>
           
           <View style={estilos.containerBotoes}>
+            <Button 
+              mode={verificarSeEstaNoCarrinho(jogo.id) ? "contained" : "contained"}
+              compact
+              style={[
+                estilos.botaoComprar,
+                verificarSeEstaNoCarrinho(jogo.id) && estilos.botaoNoCarrinho
+              ]}
+              onPress={() => adicionarJogoAoCarrinho(jogo)}
+              icon={verificarSeEstaNoCarrinho(jogo.id) ? "check" : "cart-plus"}
+              disabled={false}
+            >
+              {verificarSeEstaNoCarrinho(jogo.id) ? "No Carrinho" : "Comprar"}
+            </Button>
+            
             <Button 
               mode="outlined" 
               compact
@@ -124,6 +155,17 @@ const TelaListaJogos = () => {
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title={`Jogos (${jogos.length})`} />
+        <View style={estilos.containerCarrinhoHeader}>
+          <Appbar.Action 
+            icon="cart" 
+            onPress={navegarParaCarrinho}
+          />
+          {calcularQuantidadeTotal() > 0 && (
+            <Badge style={estilos.badgeCarrinho}>
+              {calcularQuantidadeTotal()}
+            </Badge>
+          )}
+        </View>
       </Appbar.Header>
 
       <FlatList
@@ -148,6 +190,19 @@ const TelaListaJogos = () => {
         onPress={() => navigation.navigate('CadastroJogo')}
         label="Adicionar"
       />
+
+      <Snackbar
+        visible={snackbar.visivel}
+        onDismiss={() => setSnackbar(prev => ({ ...prev, visivel: false }))}
+        duration={2000}
+        style={estilos.snackbar}
+        action={{
+          label: 'Ver Carrinho',
+          onPress: navegarParaCarrinho,
+        }}
+      >
+        {snackbar.mensagem}
+      </Snackbar>
     </SafeAreaView>
   );
 };
@@ -212,8 +267,32 @@ const estilos = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  botaoComprar: {
+    backgroundColor: '#4CAF50',
+    minWidth: 100,
+  },
+  botaoNoCarrinho: {
+    backgroundColor: '#2E7D32',
+  },
   botaoEditar: {
     borderColor: '#4CAF50',
+  },
+  containerCarrinhoHeader: {
+    position: 'relative',
+  },
+  badgeCarrinho: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: '#f44336',
+    color: 'white',
+    fontSize: 12,
+    minWidth: 20,
+    height: 20,
+  },
+  snackbar: {
+    backgroundColor: '#4CAF50',
+    marginBottom: 16,
   },
   containerVazio: {
     flex: 1,
