@@ -14,16 +14,33 @@ import {
   Snackbar
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useJogos } from '../../utils/useJogos';
 import { useCarrinhoContext } from '../components/authProvider/ProvedorCarrinho';
 
 const TelaListaJogos = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { jogos, carregando, buscarJogos } = useJogos();
   const { adicionarAoCarrinho, verificarSeEstaNoCarrinho, calcularQuantidadeTotal } = useCarrinhoContext();
   const [atualizando, setAtualizando] = useState(false);
   const [snackbar, setSnackbar] = useState({ visivel: false, mensagem: '' });
+  
+  const termoBuscaRecebido = route.params?.termoBusca;
+  const [jogosFiltrados, setJogosFiltrados] = useState([]);
+
+  const filtrarJogos = (termoBusca) => {
+    if (!termoBusca) {
+      return jogos;
+    }
+    
+    const termo = termoBusca.toLowerCase();
+    return jogos.filter(jogo => 
+      jogo.nome.toLowerCase().includes(termo) ||
+      jogo.desenvolvedor.toLowerCase().includes(termo) ||
+      jogo.categoria.toLowerCase().includes(termo)
+    );
+  };
 
   const carregarJogos = async () => {
     setAtualizando(true);
@@ -36,6 +53,11 @@ const TelaListaJogos = () => {
       carregarJogos();
     }, [])
   );
+
+  useEffect(() => {
+    const jogosFiltrados = filtrarJogos(termoBuscaRecebido);
+    setJogosFiltrados(jogosFiltrados);
+  }, [jogos, termoBuscaRecebido]);
 
   const formatarPreco = (preco) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -120,19 +142,26 @@ const TelaListaJogos = () => {
 
   const renderizarVazio = () => (
     <View style={estilos.containerVazio}>
-      <Title style={estilos.textoVazio}>Nenhum jogo encontrado</Title>
+      <Title style={estilos.textoVazio}>
+        {termoBuscaRecebido ? `Nenhum jogo encontrado para "${termoBuscaRecebido}"` : 'Nenhum jogo encontrado'}
+      </Title>
       <Paragraph style={estilos.subtextoVazio}>
-        Adicione seu primeiro jogo ao catálogo
+        {termoBuscaRecebido ? 'Tente outro termo de busca' : 'Adicione seu primeiro jogo ao catálogo'}
       </Paragraph>
-      <Button 
-        mode="contained" 
-        onPress={() => navigation.navigate('CadastroJogo')}
-        style={estilos.botaoAdicionar}
-      >
-        Adicionar Jogo
-      </Button>
+      {!termoBuscaRecebido && (
+        <Button 
+          mode="contained" 
+          onPress={() => navigation.navigate('CadastroJogo')}
+          style={estilos.botaoAdicionar}
+        >
+          Adicionar Jogo
+        </Button>
+      )}
     </View>
   );
+
+  const dadosParaExibir = jogosFiltrados;
+  const tituloTela = termoBuscaRecebido ? `Busca: ${termoBuscaRecebido}` : `Jogos (${jogos.length})`;
 
   if (carregando && jogos.length === 0) {
     return (
@@ -154,7 +183,7 @@ const TelaListaJogos = () => {
     <SafeAreaView style={estilos.container}>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title={`Jogos (${jogos.length})`} />
+        <Appbar.Content title={tituloTela} />
         <View style={estilos.containerCarrinhoHeader}>
           <Appbar.Action 
             icon="cart" 
@@ -169,10 +198,10 @@ const TelaListaJogos = () => {
       </Appbar.Header>
 
       <FlatList
-        data={jogos}
+        data={dadosParaExibir}
         renderItem={renderizarJogo}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={jogos.length === 0 ? estilos.listaVazia : estilos.lista}
+        contentContainerStyle={dadosParaExibir.length === 0 ? estilos.listaVazia : estilos.lista}
         ListEmptyComponent={renderizarVazio}
         refreshControl={
           <RefreshControl
