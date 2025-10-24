@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import AsyncStorageService from '../service/AsyncStorageService';
 
 const jogosIniciais = [
   {
@@ -26,8 +27,29 @@ const jogosIniciais = [
 ];
 
 export const useJogos = () => {
-  const [jogos, setJogos] = useState(jogosIniciais);
+  const [jogos, setJogos] = useState([]);
   const [carregando, setCarregando] = useState(false);
+
+  useEffect(() => {
+    const inicializarJogos = async () => {
+      setCarregando(true);
+      try {
+        const jogosSalvos = await AsyncStorageService.carregarJogos();
+        if (jogosSalvos.length > 0) {
+          setJogos(jogosSalvos);
+        } else {
+          setJogos(jogosIniciais);
+          await AsyncStorageService.salvarJogos(jogosIniciais);
+        }
+      } catch (error) {
+        setJogos(jogosIniciais);
+      } finally {
+        setCarregando(false);
+      }
+    };
+
+    inicializarJogos();
+  }, []);
 
   const buscarJogos = useCallback(async () => {
     setCarregando(true);
@@ -44,14 +66,14 @@ export const useJogos = () => {
     setCarregando(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      let jogosAtualizados;
       
       if (dadosJogo.id && jogos.find(j => j.id === dadosJogo.id)) {
-        setJogos(prev => prev.map(jogo => 
+        jogosAtualizados = jogos.map(jogo => 
           jogo.id === dadosJogo.id 
             ? { ...dadosJogo, atualizadoEm: new Date().toISOString() }
             : jogo
-        ));
+        );
       } else {
         const novoJogo = {
           ...dadosJogo,
@@ -59,8 +81,11 @@ export const useJogos = () => {
           criadoEm: new Date().toISOString(),
           atualizadoEm: new Date().toISOString()
         };
-        setJogos(prev => [...prev, novoJogo]);
+        jogosAtualizados = [...jogos, novoJogo];
       }
+      
+      await AsyncStorageService.salvarJogos(jogosAtualizados);
+      setJogos(jogosAtualizados);
       
       return { sucesso: true };
     } catch (error) {
@@ -74,15 +99,16 @@ export const useJogos = () => {
     setCarregando(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setJogos(prev => prev.filter(jogo => jogo.id !== id));
+      const jogosAtualizados = jogos.filter(jogo => jogo.id !== id);
+      await AsyncStorageService.salvarJogos(jogosAtualizados);
+      setJogos(jogosAtualizados);
       return { sucesso: true };
     } catch (error) {
       return { sucesso: false, erro: error.message };
     } finally {
       setCarregando(false);
     }
-  }, []);
+  }, [jogos]);
 
   return {
     jogos,
