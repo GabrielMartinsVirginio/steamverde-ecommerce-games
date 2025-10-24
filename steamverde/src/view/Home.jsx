@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { 
   Appbar, 
@@ -9,7 +9,10 @@ import {
   Text,
   Avatar,
   Divider,
-  IconButton
+  IconButton,
+  Searchbar,
+  Portal,
+  Modal
 } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +22,24 @@ const { width } = Dimensions.get('window');
 
 const Home = () => {
   const navigation = useNavigation();
+  const [modalBuscaVisivel, setModalBuscaVisivel] = useState(false);
+  const [termoBusca, setTermoBusca] = useState('');
+
+  const abrirBusca = () => {
+    setModalBuscaVisivel(true);
+  };
+
+  const fecharBusca = () => {
+    setModalBuscaVisivel(false);
+    setTermoBusca('');
+  };
+
+  const executarBusca = () => {
+    if (termoBusca.trim()) {
+      navigation.navigate('ListaJogos', { termoBusca: termoBusca.trim() });
+      fecharBusca();
+    }
+  };
 
   const atalhos = [
     {
@@ -56,9 +77,10 @@ const Home = () => {
           <Text style={estilos.tituloHeader}>SteamVerde</Text>
         </View>
         <IconButton 
-          icon="bell-outline" 
+          icon="magnify" 
           iconColor="white" 
-          size={24} 
+          size={24}
+          onPress={abrirBusca}
         />
       </Appbar.Header>
 
@@ -136,7 +158,6 @@ const Home = () => {
           
           <Button 
             mode="outlined" 
-            icon="magnify"
             style={estilos.botaoAcaoSecundario}
             contentStyle={estilos.conteudoBotao}
             labelStyle={estilos.textoBotaoOutline}
@@ -148,6 +169,43 @@ const Home = () => {
 
         <View style={estilos.espacoFinal} />
       </ScrollView>
+
+      <Portal>
+        <Modal 
+          visible={modalBuscaVisivel} 
+          onDismiss={fecharBusca}
+          contentContainerStyle={estilos.modalBusca}
+        >
+          <Surface style={estilos.containerBusca}>
+            <Text style={estilos.tituloBusca}>Buscar Jogos</Text>
+            <Searchbar
+              placeholder="Digite o nome do jogo..."
+              onChangeText={setTermoBusca}
+              value={termoBusca}
+              style={estilos.barraBusca}
+              onSubmitEditing={executarBusca}
+              autoFocus
+            />
+            <View style={estilos.botoesBusca}>
+              <Button 
+                mode="outlined" 
+                onPress={fecharBusca}
+                style={estilos.botaoCancelar}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                mode="contained" 
+                onPress={executarBusca}
+                style={estilos.botaoBuscar}
+                disabled={!termoBusca.trim()}
+              >
+                Buscar
+              </Button>
+            </View>
+          </Surface>
+        </Modal>
+      </Portal>
     </SafeAreaView>
   );
 };
@@ -282,6 +340,40 @@ const estilos = StyleSheet.create({
   },
   espacoFinal: {
     height: 20,
+  },
+  modalBusca: {
+    padding: 20,
+    justifyContent: 'center',
+  },
+  containerBusca: {
+    backgroundColor: 'white',
+    padding: 24,
+    borderRadius: 16,
+    elevation: 8,
+  },
+  tituloBusca: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  barraBusca: {
+    marginBottom: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  botoesBusca: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  botaoCancelar: {
+    flex: 1,
+    borderColor: '#666',
+  },
+  botaoBuscar: {
+    flex: 1,
+    backgroundColor: '#4CAF50',
   },
 });
 
