@@ -34,11 +34,12 @@ const TelaListaJogos = () => {
       return jogos;
     }
     
-    const termo = termoBusca.toLowerCase();
+    const termo = termoBusca.toLowerCase().trim();
     return jogos.filter(jogo => 
       jogo.nome.toLowerCase().includes(termo) ||
+      jogo.categoria.toLowerCase().includes(termo) ||
       jogo.desenvolvedor.toLowerCase().includes(termo) ||
-      jogo.categoria.toLowerCase().includes(termo)
+      jogo.descricao.toLowerCase().includes(termo)
     );
   };
 
