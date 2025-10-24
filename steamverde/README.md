@@ -26,6 +26,23 @@ SteamVerde é um aplicativo mobile para venda de jogos digitais. O app permite c
 -  Tela de perfil do usuário
 -  Navegação completa entre telas
 
+### Etapa 2 - CRUD & Persistência
+-  Operações CRUD completas para jogos
+-  Persistência local com AsyncStorage
+-  Validações em tempo real
+-  Sistema de busca integrado
+-  Tratamento de erros robusto
+-  Loading states e feedback visual
+
+### Etapa 3 - Listagem, Busca e Filtros
+-  FlatList otimizada para performance
+-  Busca por texto (nome, categoria, desenvolvedor, descrição)
+-  Filtros por categoria (10 categorias disponíveis)
+-  Filtro por faixa de preço (min/max)
+-  Ordenação múltipla (nome A-Z/Z-A, preço crescente/decrescente)
+-  Ação rápida de adicionar ao carrinho na lista
+-  Interface recolhível de filtros para economia de espaço
+
 ## Como Rodar
 
 ### Pré-requisitos
@@ -74,14 +91,45 @@ steamverde/
 └── App.js                   # Arquivo principal
 
 
-## Funcionalidades Principais
+## Como os Filtros Foram Implementados
+
+### Arquitetura do Sistema de Filtros
+
+1. **Componente FiltroJogos** (`src/view/components/common/FiltroJogos.jsx`)
+   - Interface recolhível para economia de espaço
+   - Chips selecionáveis para categorias
+   - Inputs de faixa de preço com validação
+   - Botões de ordenação (nome A-Z/Z-A, preço ↑/↓)
+   - Estado local com aplicação em lote
+
+2. **Lógica de Filtragem** (`TelaListaJogos.jsx`)
+   ```javascript
+   const aplicarFiltrosEOrdenacao = (jogosBase, termoBusca, filtrosAtivos) => {
+     // 1. Filtra por texto de busca
+     // 2. Filtra por categorias selecionadas
+     // 3. Filtra por faixa de preço
+     // 4. Aplica ordenação escolhida
+     return jogosProcessados;
+   }
+   ```
+
+3. **Performance Otimizada**
+   - useEffect com dependências específicas
+   - Filtragem em memória (sem chamadas de API)
+   - FlatList para renderização eficiente
+   - Estado reativo com atualizações instantâneas
+
+### Funcionalidades Principais
 
 - **Navegação fluida** entre todas as telas
 - **Cadastro de produtos** com validação completa
 - **Carrinho de compras** funcional
+- **Sistema de filtros avançado** com múltiplos critérios
+- **Busca inteligente** por múltiplos campos
 - **Interface moderna** com Material Design
 - **Animações** na tela splash
 - **Feedback visual** para todas as ações
+- **Persistência local** com AsyncStorage
 
 
 ##  Desenvolvedor
