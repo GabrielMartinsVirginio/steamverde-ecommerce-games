@@ -35,6 +35,12 @@ const TelaListaJogos = () => {
     precoMax: '', 
     ordenacao: 'nome' 
   });
+  const [filtrosAplicados, setFiltrosAplicados] = useState({ 
+    categorias: [], 
+    precoMin: '', 
+    precoMax: '', 
+    ordenacao: 'nome' 
+  });
 
   const aplicarFiltrosEOrdenacao = (jogosBase, termoBusca, filtrosAtivos) => {
     let jogosProcessados = [...jogosBase];
@@ -97,12 +103,13 @@ const TelaListaJogos = () => {
   );
 
   useEffect(() => {
-    const jogosProcessados = aplicarFiltrosEOrdenacao(jogos, termoBuscaRecebido, filtros);
+    const jogosProcessados = aplicarFiltrosEOrdenacao(jogos, termoBuscaRecebido, filtrosAplicados);
     setJogosFiltrados(jogosProcessados);
-  }, [jogos, termoBuscaRecebido, filtros]);
+  }, [jogos, termoBuscaRecebido, filtrosAplicados]);
 
   const handleFiltroChange = (novosFiltros) => {
     setFiltros(novosFiltros);
+    setFiltrosAplicados(novosFiltros);
   };
 
   const formatarPreco = (preco) => {

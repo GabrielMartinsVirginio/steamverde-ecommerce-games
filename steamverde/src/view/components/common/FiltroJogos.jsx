@@ -17,6 +17,7 @@ const FiltroJogos = ({
 }) => {
   const [filtroLocal, setFiltroLocal] = useState(filtroAtual);
   const [expandido, setExpandido] = useState(false);
+  const [filtroAplicado, setFiltroAplicado] = useState(filtroAtual);
 
   const categorias = [
     'Ação', 'Aventura', 'RPG', 'Estratégia', 'Esportes', 
@@ -41,20 +42,27 @@ const FiltroJogos = ({
 
   const aplicarFiltros = () => {
     onFiltroChange(filtroLocal);
+    setFiltroAplicado(filtroLocal);
+    setExpandido(false);
   };
 
   const limparFiltros = () => {
     const filtroVazio = { categorias: [], precoMin: '', precoMax: '', ordenacao: 'nome' };
     setFiltroLocal(filtroVazio);
+    setFiltroAplicado(filtroVazio);
     onFiltroChange(filtroVazio);
   };
 
   const contarFiltrosAtivos = () => {
     let count = 0;
-    if (filtroLocal.categorias.length > 0) count++;
-    if (filtroLocal.precoMin || filtroLocal.precoMax) count++;
-    if (filtroLocal.ordenacao !== 'nome') count++;
+    if (filtroAplicado.categorias.length > 0) count++;
+    if (filtroAplicado.precoMin || filtroAplicado.precoMax) count++;
+    if (filtroAplicado.ordenacao !== 'nome') count++;
     return count;
+  };
+
+  const temAlteracoesPendentes = () => {
+    return JSON.stringify(filtroLocal) !== JSON.stringify(filtroAplicado);
   };
 
   if (!expandido) {
@@ -181,9 +189,13 @@ const FiltroJogos = ({
         <Button 
           mode="contained" 
           onPress={aplicarFiltros}
-          style={estilos.botaoAplicar}
+          style={[
+            estilos.botaoAplicar,
+            temAlteracoesPendentes() && estilos.botaoAplicarDestaque
+          ]}
+          icon={temAlteracoesPendentes() ? "check" : "filter-check"}
         >
-          Aplicar
+          {temAlteracoesPendentes() ? 'Aplicar Filtros' : 'Filtros Aplicados'}
         </Button>
       </View>
     </Surface>
@@ -280,6 +292,10 @@ const estilos = StyleSheet.create({
   botaoAplicar: {
     flex: 1,
     backgroundColor: '#4CAF50',
+  },
+  botaoAplicarDestaque: {
+    backgroundColor: '#2E7D32',
+    elevation: 4,
   },
   botaoFiltro: {
     borderColor: '#4CAF50',
