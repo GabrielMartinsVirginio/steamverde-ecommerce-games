@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import AsyncStorageService from '../service/AsyncStorageService';
+import TratamentoErroService from '../service/TratamentoErroService';
 
 const jogosIniciais = [
   {
@@ -29,12 +30,19 @@ const jogosIniciais = [
 export const useJogos = () => {
   const [jogos, setJogos] = useState([]);
   const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState(null);
+  const [operacaoAtual, setOperacaoAtual] = useState('');
 
   useEffect(() => {
     const inicializarJogos = async () => {
       setCarregando(true);
+      setOperacaoAtual('Carregando jogos...');
+      setErro(null);
+      
       try {
-        const jogosSalvos = await AsyncStorageService.carregarJogos();
+        const operacaoCarregar = AsyncStorageService.carregarJogos();
+        const jogosSalvos = await TratamentoErroService.simularTimeoutOperacao(operacaoCarregar, 5000);
+        
         if (jogosSalvos.length > 0) {
           setJogos(jogosSalvos);
         } else {
@@ -42,9 +50,12 @@ export const useJogos = () => {
           await AsyncStorageService.salvarJogos(jogosIniciais);
         }
       } catch (error) {
+        const erroInfo = TratamentoErroService.loggarErro(error, 'inicializarJogos');
+        setErro(erroInfo);
         setJogos(jogosIniciais);
       } finally {
         setCarregando(false);
+        setOperacaoAtual('');
       }
     };
 
@@ -64,11 +75,14 @@ export const useJogos = () => {
 
   const salvarJogo = useCallback(async (dadosJogo) => {
     setCarregando(true);
+    const isEdicao = dadosJogo.id && jogos.find(j => j.id === dadosJogo.id);
+    setOperacaoAtual(isEdicao ? 'Atualizando jogo...' : 'Salvando jogo...');
+    setErro(null);
     
     try {
       let jogosAtualizados;
       
-      if (dadosJogo.id && jogos.find(j => j.id === dadosJogo.id)) {
+      if (isEdicao) {
         jogosAtualizados = jogos.map(jogo => 
           jogo.id === dadosJogo.id 
             ? { ...dadosJogo, atualizadoEm: new Date().toISOString() }
@@ -84,38 +98,63 @@ export const useJogos = () => {
         jogosAtualizados = [...jogos, novoJogo];
       }
       
-      await AsyncStorageService.salvarJogos(jogosAtualizados);
+      const operacaoSalvar = AsyncStorageService.salvarJogos(jogosAtualizados);
+      await TratamentoErroService.simularTimeoutOperacao(operacaoSalvar, 8000);
       setJogos(jogosAtualizados);
       
       return { sucesso: true };
     } catch (error) {
-      return { sucesso: false, erro: error.message };
+      const erroInfo = TratamentoErroService.loggarErro(error, 'salvarJogo');
+      setErro(erroInfo);
+      return { 
+        sucesso: false, 
+        erro: TratamentoErroService.obterMensagemUsuario(error),
+        recuperavel: TratamentoErroService.podeRecuperar(error)
+      };
     } finally {
       setCarregando(false);
+      setOperacaoAtual('');
     }
   }, [jogos]);
 
   const excluirJogo = useCallback(async (id) => {
     setCarregando(true);
+    setOperacaoAtual('Excluindo jogo...');
+    setErro(null);
     
     try {
       const jogosAtualizados = jogos.filter(jogo => jogo.id !== id);
-      await AsyncStorageService.salvarJogos(jogosAtualizados);
+      const operacaoExcluir = AsyncStorageService.salvarJogos(jogosAtualizados);
+      await TratamentoErroService.simularTimeoutOperacao(operacaoExcluir, 8000);
       setJogos(jogosAtualizados);
       return { sucesso: true };
     } catch (error) {
-      return { sucesso: false, erro: error.message };
+      const erroInfo = TratamentoErroService.loggarErro(error, 'excluirJogo');
+      setErro(erroInfo);
+      return { 
+        sucesso: false, 
+        erro: TratamentoErroService.obterMensagemUsuario(error),
+        recuperavel: TratamentoErroService.podeRecuperar(error)
+      };
     } finally {
       setCarregando(false);
+      setOperacaoAtual('');
     }
   }, [jogos]);
+
+  const limparErro = useCallback(() => {
+    setErro(null);
+  }, []);
 
   return {
     jogos,
     carregando,
+    erro,
+    operacaoAtual,
     buscarJogos,
     buscarJogoPorId,
     salvarJogo,
-    excluirJogo
+    excluirJogo,
+    limparErro
   };
 };
