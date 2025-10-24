@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useJogos } from '../../utils/useJogos';
 import { useCarrinhoContext } from '../components/authProvider/ProvedorCarrinho';
+import FiltroJogos from '../components/common/FiltroJogos';
 
 const TelaListaJogos = () => {
   const navigation = useNavigation();
@@ -28,19 +29,59 @@ const TelaListaJogos = () => {
   
   const termoBuscaRecebido = route.params?.termoBusca;
   const [jogosFiltrados, setJogosFiltrados] = useState([]);
+  const [filtros, setFiltros] = useState({ 
+    categorias: [], 
+    precoMin: '', 
+    precoMax: '', 
+    ordenacao: 'nome' 
+  });
 
-  const filtrarJogos = (termoBusca) => {
-    if (!termoBusca) {
-      return jogos;
+  const aplicarFiltrosEOrdenacao = (jogosBase, termoBusca, filtrosAtivos) => {
+    let jogosProcessados = [...jogosBase];
+
+    if (termoBusca) {
+      const termo = termoBusca.toLowerCase().trim();
+      jogosProcessados = jogosProcessados.filter(jogo => 
+        jogo.nome.toLowerCase().includes(termo) ||
+        jogo.categoria.toLowerCase().includes(termo) ||
+        jogo.desenvolvedor.toLowerCase().includes(termo) ||
+        jogo.descricao.toLowerCase().includes(termo)
+      );
     }
-    
-    const termo = termoBusca.toLowerCase().trim();
-    return jogos.filter(jogo => 
-      jogo.nome.toLowerCase().includes(termo) ||
-      jogo.categoria.toLowerCase().includes(termo) ||
-      jogo.desenvolvedor.toLowerCase().includes(termo) ||
-      jogo.descricao.toLowerCase().includes(termo)
-    );
+
+    if (filtrosAtivos.categorias.length > 0) {
+      jogosProcessados = jogosProcessados.filter(jogo => 
+        filtrosAtivos.categorias.includes(jogo.categoria)
+      );
+    }
+
+    if (filtrosAtivos.precoMin || filtrosAtivos.precoMax) {
+      const precoMin = filtrosAtivos.precoMin ? parseFloat(filtrosAtivos.precoMin.replace(',', '.')) : 0;
+      const precoMax = filtrosAtivos.precoMax ? parseFloat(filtrosAtivos.precoMax.replace(',', '.')) : Infinity;
+      
+      jogosProcessados = jogosProcessados.filter(jogo => 
+        jogo.preco >= precoMin && jogo.preco <= precoMax
+      );
+    }
+
+    switch (filtrosAtivos.ordenacao) {
+      case 'nome':
+        jogosProcessados.sort((a, b) => a.nome.localeCompare(b.nome));
+        break;
+      case 'nome-desc':
+        jogosProcessados.sort((a, b) => b.nome.localeCompare(a.nome));
+        break;
+      case 'preco':
+        jogosProcessados.sort((a, b) => a.preco - b.preco);
+        break;
+      case 'preco-desc':
+        jogosProcessados.sort((a, b) => b.preco - a.preco);
+        break;
+      default:
+        break;
+    }
+
+    return jogosProcessados;
   };
 
   const carregarJogos = async () => {
@@ -56,9 +97,13 @@ const TelaListaJogos = () => {
   );
 
   useEffect(() => {
-    const jogosFiltrados = filtrarJogos(termoBuscaRecebido);
-    setJogosFiltrados(jogosFiltrados);
-  }, [jogos, termoBuscaRecebido]);
+    const jogosProcessados = aplicarFiltrosEOrdenacao(jogos, termoBuscaRecebido, filtros);
+    setJogosFiltrados(jogosProcessados);
+  }, [jogos, termoBuscaRecebido, filtros]);
+
+  const handleFiltroChange = (novosFiltros) => {
+    setFiltros(novosFiltros);
+  };
 
   const formatarPreco = (preco) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -197,6 +242,11 @@ const TelaListaJogos = () => {
           )}
         </View>
       </Appbar.Header>
+
+      <FiltroJogos 
+        onFiltroChange={handleFiltroChange}
+        filtroAtual={filtros}
+      />
 
       <FlatList
         data={dadosParaExibir}
