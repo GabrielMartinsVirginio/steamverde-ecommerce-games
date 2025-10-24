@@ -15,6 +15,7 @@ import {
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import ValidacaoService from '../../service/ValidacaoService';
 
 const TelaCadastroJogo = () => {
   const navigation = useNavigation();
@@ -56,41 +57,49 @@ const TelaCadastroJogo = () => {
 
   const atualizarCampo = (campo, valor) => {
     setFormulario(prev => ({ ...prev, [campo]: valor }));
-    if (erros[campo]) {
+    
+    setTimeout(() => {
+      validarCampoIndividual(campo, valor);
+    }, 300);
+  };
+
+  const validarCampoIndividual = (campo, valor) => {
+    let errosCampo = [];
+    
+    switch (campo) {
+      case 'nome':
+        errosCampo = ValidacaoService.validarNomeJogo(valor);
+        break;
+      case 'preco':
+        errosCampo = ValidacaoService.validarPreco(valor);
+        break;
+      case 'categoria':
+        errosCampo = ValidacaoService.validarCategoria(valor);
+        break;
+      case 'descricao':
+        errosCampo = ValidacaoService.validarDescricao(valor);
+        break;
+      case 'desenvolvedor':
+        errosCampo = ValidacaoService.validarDesenvolvedor(valor);
+        break;
+      case 'dataLancamento':
+        errosCampo = ValidacaoService.validarDataLancamento(valor);
+        break;
+      default:
+        break;
+    }
+
+    if (errosCampo.length > 0) {
+      setErros(prev => ({ ...prev, [campo]: errosCampo[0] }));
+    } else {
       setErros(prev => ({ ...prev, [campo]: null }));
     }
   };
 
   const validarFormulario = () => {
-    const novosErros = {};
-
-    if (!formulario.nome.trim()) {
-      novosErros.nome = 'Nome é obrigatório';
-    }
-
-    if (!formulario.preco.trim()) {
-      novosErros.preco = 'Preço é obrigatório';
-    } else {
-      const preco = parseFloat(formulario.preco);
-      if (isNaN(preco) || preco <= 0) {
-        novosErros.preco = 'Preço deve ser maior que 0';
-      }
-    }
-
-    if (!formulario.categoria.trim()) {
-      novosErros.categoria = 'Categoria é obrigatória';
-    }
-
-    if (!formulario.descricao.trim()) {
-      novosErros.descricao = 'Descrição é obrigatória';
-    }
-
-    if (!formulario.desenvolvedor.trim()) {
-      novosErros.desenvolvedor = 'Desenvolvedor é obrigatório';
-    }
-
-    setErros(novosErros);
-    return Object.keys(novosErros).length === 0;
+    const resultado = ValidacaoService.validarFormularioCompleto(formulario);
+    setErros(resultado.erros);
+    return resultado.valido;
   };
 
   const salvarJogo = async () => {
@@ -107,7 +116,7 @@ const TelaCadastroJogo = () => {
       const jogoData = {
         id: isEdicao ? jogoParaEditar.id : Date.now().toString(),
         nome: formulario.nome.trim(),
-        preco: parseFloat(formulario.preco),
+        preco: ValidacaoService.formatarPrecoParaSalvar(formulario.preco),
         categoria: formulario.categoria,
         descricao: formulario.descricao.trim(),
         desenvolvedor: formulario.desenvolvedor.trim(),
@@ -212,18 +221,29 @@ const TelaCadastroJogo = () => {
               style={estilos.input}
               error={!!erros.nome}
               disabled={salvando}
+              placeholder="Ex: Cyberpunk 2077"
+              maxLength={100}
             />
-            {erros.nome && <Text style={estilos.textoErro}>{erros.nome}</Text>}
+            <View style={estilos.infoInput}>
+              {erros.nome && <Text style={estilos.textoErro}>{erros.nome}</Text>}
+              <Text style={estilos.contadorCaracteres}>
+                {formulario.nome.length}/100
+              </Text>
+            </View>
 
             <TextInput
               label="Preço (R$) *"
               value={formulario.preco}
-              onChangeText={(valor) => atualizarCampo('preco', valor)}
+              onChangeText={(valor) => {
+                const valorFormatado = valor.replace(/[^0-9,\.]/g, '');
+                atualizarCampo('preco', valorFormatado);
+              }}
               mode="outlined"
-              keyboardType="numeric"
+              keyboardType="decimal-pad"
               style={estilos.input}
               error={!!erros.preco}
               disabled={salvando}
+              placeholder="Ex: 99,90"
             />
             {erros.preco && <Text style={estilos.textoErro}>{erros.preco}</Text>}
 
@@ -288,8 +308,15 @@ const TelaCadastroJogo = () => {
               style={estilos.inputDescricao}
               error={!!erros.descricao}
               disabled={salvando}
+              placeholder="Descreva o jogo, gameplay, enredo..."
+              maxLength={500}
             />
-            {erros.descricao && <Text style={estilos.textoErro}>{erros.descricao}</Text>}
+            <View style={estilos.infoInput}>
+              {erros.descricao && <Text style={estilos.textoErro}>{erros.descricao}</Text>}
+              <Text style={estilos.contadorCaracteres}>
+                {formulario.descricao.length}/500
+              </Text>
+            </View>
 
             <Divider style={estilos.divisor} />
 
@@ -367,12 +394,22 @@ const estilos = StyleSheet.create({
     backgroundColor: 'white',
     minHeight: 100,
   },
+  infoInput: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    marginHorizontal: 12,
+  },
   textoErro: {
     color: '#f44336',
     fontSize: 12,
-    marginTop: -8,
-    marginBottom: 8,
-    marginLeft: 12,
+    flex: 1,
+  },
+  contadorCaracteres: {
+    color: '#666',
+    fontSize: 11,
+    fontStyle: 'italic',
   },
   divisor: {
     marginVertical: 20,
