@@ -24,6 +24,72 @@ const jogosIniciais = [
     dataLancamento: '2015-05-19',
     criadoEm: '2024-01-02T00:00:00.000Z',
     atualizadoEm: '2024-01-02T00:00:00.000Z'
+  },
+  {
+    id: '3',
+    nome: 'FIFA 24',
+    preco: 249.90,
+    categoria: 'Esportes',
+    descricao: 'O jogo de futebol mais realista do mundo com tecnologia HyperMotion.',
+    desenvolvedor: 'EA Sports',
+    dataLancamento: '2023-09-29',
+    criadoEm: '2024-01-03T00:00:00.000Z',
+    atualizadoEm: '2024-01-03T00:00:00.000Z'
+  },
+  {
+    id: '4',
+    nome: 'Grand Theft Auto V',
+    preco: 89.90,
+    categoria: 'Ação',
+    descricao: 'Jogo de ação em mundo aberto com três protagonistas únicos.',
+    desenvolvedor: 'Rockstar Games',
+    dataLancamento: '2013-09-17',
+    criadoEm: '2024-01-04T00:00:00.000Z',
+    atualizadoEm: '2024-01-04T00:00:00.000Z'
+  },
+  {
+    id: '5',
+    nome: 'Forza Horizon 5',
+    preco: 179.90,
+    categoria: 'Corrida',
+    descricao: 'Corrida em mundo aberto no México com centenas de carros.',
+    desenvolvedor: 'Playground Games',
+    dataLancamento: '2021-11-09',
+    criadoEm: '2024-01-05T00:00:00.000Z',
+    atualizadoEm: '2024-01-05T00:00:00.000Z'
+  },
+  {
+    id: '6',
+    nome: 'Phasmophobia',
+    preco: 35.90,
+    categoria: 'Terror',
+    descricao: 'Jogo cooperativo de investigação paranormal para até 4 jogadores.',
+    desenvolvedor: 'Kinetic Games',
+    dataLancamento: '2020-09-18',
+    criadoEm: '2024-01-06T00:00:00.000Z',
+    atualizadoEm: '2024-01-06T00:00:00.000Z'
+  },
+  {
+    id: '7',
+    nome: 'Portal 2',
+    preco: 29.90,
+    categoria: 'Puzzle',
+    descricao: 'Jogo de quebra-cabeças em primeira pessoa com portais.',
+    desenvolvedor: 'Valve',
+    dataLancamento: '2011-04-19',
+    criadoEm: '2024-01-07T00:00:00.000Z',
+    atualizadoEm: '2024-01-07T00:00:00.000Z'
+  },
+  {
+    id: '8',
+    nome: 'Age of Empires IV',
+    preco: 129.90,
+    categoria: 'Estratégia',
+    descricao: 'Jogo de estratégia em tempo real com civilizações históricas.',
+    desenvolvedor: 'Relic Entertainment',
+    dataLancamento: '2021-10-28',
+    criadoEm: '2024-01-08T00:00:00.000Z',
+    atualizadoEm: '2024-01-08T00:00:00.000Z'
   }
 ];
 
