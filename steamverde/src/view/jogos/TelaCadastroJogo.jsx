@@ -16,12 +16,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import ValidacaoService from '../../service/ValidacaoService';
+import LoadingOverlay from '../components/common/LoadingOverlay';
+import { useJogos } from '../../utils/useJogos';
 
 const TelaCadastroJogo = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const jogoParaEditar = route.params?.jogo;
   const isEdicao = !!jogoParaEditar;
+  const { salvarJogo: salvarJogoHook, excluirJogo: excluirJogoHook, carregando: carregandoHook, operacaoAtual, erro: erroHook, limparErro } = useJogos();
 
   const [formulario, setFormulario] = useState({
     nome: '',
@@ -108,11 +111,9 @@ const TelaCadastroJogo = () => {
       return;
     }
 
-    setSalvando(true);
+    limparErro();
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
       const jogoData = {
         id: isEdicao ? jogoParaEditar.id : Date.now().toString(),
         nome: formulario.nome.trim(),
@@ -125,22 +126,23 @@ const TelaCadastroJogo = () => {
         atualizadoEm: new Date().toISOString()
       };
 
-      console.log('Jogo salvo:', jogoData);
+      const resultado = await salvarJogoHook(jogoData);
       
-      mostrarSnackbar(
-        isEdicao ? 'Jogo atualizado com sucesso!' : 'Jogo cadastrado com sucesso!', 
-        'success'
-      );
-
-      setTimeout(() => {
-        navigation.goBack();
-      }, 2000);
+      if (resultado.sucesso) {
+        mostrarSnackbar(
+          isEdicao ? 'Jogo atualizado com sucesso!' : 'Jogo cadastrado com sucesso!', 
+          'success'
+        );
+        
+        setTimeout(() => {
+          navigation.goBack();
+        }, 1500);
+      } else {
+        mostrarSnackbar(resultado.erro || 'Erro ao salvar jogo', 'error');
+      }
 
     } catch (error) {
-      console.error('Erro ao salvar jogo:', error);
-      mostrarSnackbar('Erro ao salvar jogo. Tente novamente.', 'error');
-    } finally {
-      setSalvando(false);
+      mostrarSnackbar('Erro inesperado ao salvar jogo', 'error');
     }
   };
 
@@ -156,23 +158,22 @@ const TelaCadastroJogo = () => {
   };
 
   const excluirJogo = async () => {
-    setSalvando(true);
+    limparErro();
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const resultado = await excluirJogoHook(jogoParaEditar.id);
       
-      console.log('Jogo excluído:', jogoParaEditar.id);
-      mostrarSnackbar('Jogo excluído com sucesso!', 'success');
-      
-      setTimeout(() => {
-        navigation.goBack();
-      }, 1500);
+      if (resultado.sucesso) {
+        mostrarSnackbar('Jogo excluído com sucesso!', 'success');
+        setTimeout(() => {
+          navigation.goBack();
+        }, 1500);
+      } else {
+        mostrarSnackbar(resultado.erro || 'Erro ao excluir jogo', 'error');
+      }
       
     } catch (error) {
-      console.error('Erro ao excluir jogo:', error);
-      mostrarSnackbar('Erro ao excluir jogo. Tente novamente.', 'error');
-    } finally {
-      setSalvando(false);
+      mostrarSnackbar('Erro inesperado ao excluir jogo', 'error');
     }
   };
 
@@ -201,7 +202,7 @@ const TelaCadastroJogo = () => {
           <Appbar.Action 
             icon="delete" 
             onPress={confirmarExclusao}
-            disabled={salvando}
+            disabled={carregandoHook}
           />
         )}
       </Appbar.Header>
@@ -220,7 +221,7 @@ const TelaCadastroJogo = () => {
               mode="outlined"
               style={estilos.input}
               error={!!erros.nome}
-              disabled={salvando}
+              disabled={carregandoHook}
               placeholder="Ex: Cyberpunk 2077"
               maxLength={100}
             />
@@ -242,7 +243,7 @@ const TelaCadastroJogo = () => {
               keyboardType="decimal-pad"
               style={estilos.input}
               error={!!erros.preco}
-              disabled={salvando}
+              disabled={carregandoHook}
               placeholder="Ex: 99,90"
             />
             {erros.preco && <Text style={estilos.textoErro}>{erros.preco}</Text>}
@@ -257,7 +258,7 @@ const TelaCadastroJogo = () => {
                   mode="outlined"
                   style={estilos.input}
                   error={!!erros.categoria}
-                  disabled={salvando}
+                  disabled={carregandoHook}
                   right={<TextInput.Icon icon="chevron-down" onPress={() => setMenuCategoria(true)} />}
                   onFocus={() => setMenuCategoria(true)}
                   showSoftInputOnFocus={false}
@@ -284,7 +285,7 @@ const TelaCadastroJogo = () => {
               mode="outlined"
               style={estilos.input}
               error={!!erros.desenvolvedor}
-              disabled={salvando}
+              disabled={carregandoHook}
             />
             {erros.desenvolvedor && <Text style={estilos.textoErro}>{erros.desenvolvedor}</Text>}
 
@@ -295,7 +296,7 @@ const TelaCadastroJogo = () => {
               mode="outlined"
               placeholder="AAAA-MM-DD"
               style={estilos.input}
-              disabled={salvando}
+              disabled={carregandoHook}
             />
 
             <TextInput
@@ -307,7 +308,7 @@ const TelaCadastroJogo = () => {
               numberOfLines={4}
               style={estilos.inputDescricao}
               error={!!erros.descricao}
-              disabled={salvando}
+              disabled={carregandoHook}
               placeholder="Descreva o jogo, gameplay, enredo..."
               maxLength={500}
             />
@@ -325,7 +326,7 @@ const TelaCadastroJogo = () => {
                 mode="contained" 
                 onPress={salvarJogo}
                 style={estilos.botaoSalvar}
-                disabled={salvando}
+                disabled={carregandoHook}
                 icon={salvando ? undefined : (isEdicao ? "content-save" : "plus")}
               >
                 {salvando ? (
@@ -340,7 +341,7 @@ const TelaCadastroJogo = () => {
                   mode="outlined" 
                   onPress={limparFormulario}
                   style={estilos.botaoLimpar}
-                  disabled={salvando}
+                  disabled={carregandoHook}
                 >
                   Limpar
                 </Button>
@@ -358,9 +359,14 @@ const TelaCadastroJogo = () => {
           estilos.snackbar,
           { backgroundColor: snackbar.tipo === 'error' ? '#f44336' : '#4CAF50' }
         ]}
-      >
-        {snackbar.mensagem}
-      </Snackbar>
+        >
+          {snackbar.mensagem}
+        </Snackbar>
+
+      <LoadingOverlay 
+        visible={carregandoHook} 
+        mensagem={operacaoAtual || 'Processando...'}
+      />
     </SafeAreaView>
   );
 };
