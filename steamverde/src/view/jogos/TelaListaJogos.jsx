@@ -121,6 +121,11 @@ const TelaListaJogos = () => {
   };
 
   const adicionarJogoAoCarrinho = (jogo) => {
+    if (verificarSeEstaNoCarrinho(jogo.id)) {
+      navegarParaCarrinho();
+      return;
+    }
+    
     adicionarAoCarrinho(jogo);
     setSnackbar({ 
       visivel: true, 
@@ -159,17 +164,16 @@ const TelaListaJogos = () => {
           
           <View style={estilos.containerBotoes}>
             <Button 
-              mode={verificarSeEstaNoCarrinho(jogo.id) ? "contained" : "contained"}
+              mode="contained"
               compact
               style={[
                 estilos.botaoComprar,
                 verificarSeEstaNoCarrinho(jogo.id) && estilos.botaoNoCarrinho
               ]}
               onPress={() => adicionarJogoAoCarrinho(jogo)}
-              icon={verificarSeEstaNoCarrinho(jogo.id) ? "check" : "cart-plus"}
-              disabled={false}
+              icon={verificarSeEstaNoCarrinho(jogo.id) ? "cart-arrow-right" : "cart-plus"}
             >
-              {verificarSeEstaNoCarrinho(jogo.id) ? "No Carrinho" : "Comprar"}
+              {verificarSeEstaNoCarrinho(jogo.id) ? "Ver Carrinho" : "Comprar"}
             </Button>
             
             <Button 
