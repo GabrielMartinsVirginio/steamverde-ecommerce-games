@@ -14,12 +14,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCarrinhoContext } from '../components/authProvider/ProvedorCarrinho';
+import { useAuth } from '../components/authProvider/ProvedorAutenticacao';
 
 const TelaDetalheJogo = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const jogo = route.params?.jogo;
   const { adicionarAoCarrinho, verificarSeEstaNoCarrinho } = useCarrinhoContext();
+  const { ehAdmin } = useAuth();
 
   // Jogo padrão caso não seja passado parâmetro
   const jogoDefault = {
@@ -59,7 +61,9 @@ const TelaDetalheJogo = () => {
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Detalhe do Jogo" />
-        <Appbar.Action icon="pencil" onPress={handleEditar} />
+        {ehAdmin() && (
+          <Appbar.Action icon="pencil" onPress={handleEditar} />
+        )}
       </Appbar.Header>
 
       <ScrollView style={estilos.conteudo} showsVerticalScrollIndicator={false}>
