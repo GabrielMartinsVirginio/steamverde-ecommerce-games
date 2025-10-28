@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useJogos } from '../../utils/useJogos';
 import { useCarrinhoContext } from '../components/authProvider/ProvedorCarrinho';
+import { useAuth } from '../components/authProvider/ProvedorAutenticacao';
 import FiltroJogos from '../components/common/FiltroJogos';
 
 const TelaListaJogos = () => {
@@ -24,6 +25,7 @@ const TelaListaJogos = () => {
   const route = useRoute();
   const { jogos, carregando, buscarJogos } = useJogos();
   const { adicionarAoCarrinho, verificarSeEstaNoCarrinho, calcularQuantidadeTotal } = useCarrinhoContext();
+  const { ehAdmin } = useAuth();
   const [atualizando, setAtualizando] = useState(false);
   const [snackbar, setSnackbar] = useState({ visivel: false, mensagem: '' });
   
@@ -183,14 +185,16 @@ const TelaListaJogos = () => {
               {verificarSeEstaNoCarrinho(jogo.id) ? "Ver Carrinho" : "Comprar"}
             </Button>
             
-            <Button 
-              mode="outlined" 
-              compact
-              style={estilos.botaoEditar}
-              onPress={() => navegarParaEdicao(jogo)}
-            >
-              Editar
-            </Button>
+            {ehAdmin() && (
+              <Button 
+                mode="outlined" 
+                compact
+                style={estilos.botaoEditar}
+                onPress={() => navegarParaEdicao(jogo)}
+              >
+                Editar
+              </Button>
+            )}
           </View>
         </View>
       </Card.Content>
@@ -205,7 +209,7 @@ const TelaListaJogos = () => {
       <Paragraph style={estilos.subtextoVazio}>
         {termoBuscaRecebido ? 'Tente outro termo de busca' : 'Adicione seu primeiro jogo ao catálogo'}
       </Paragraph>
-      {!termoBuscaRecebido && (
+      {!termoBuscaRecebido && ehAdmin() && (
         <Button 
           mode="contained" 
           onPress={() => navigation.navigate('CadastroJogo')}
@@ -275,12 +279,14 @@ const TelaListaJogos = () => {
         showsVerticalScrollIndicator={false}
       />
 
-      <FAB
-        icon="plus"
-        style={estilos.fab}
-        onPress={() => navigation.navigate('CadastroJogo')}
-        label="Adicionar"
-      />
+      {ehAdmin() && (
+        <FAB
+          icon="plus"
+          style={estilos.fab}
+          onPress={() => navigation.navigate('CadastroJogo')}
+          label="Adicionar"
+        />
+      )}
 
       <Snackbar
         visible={snackbar.visivel}
