@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import AutenticacaoService from '../../../service/autenticacao';
 
 const ContextoAutenticacao = createContext();
 
@@ -15,24 +16,65 @@ const ProvedorAutenticacao = ({ children }) => {
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    setTimeout(() => {
-      setCarregando(false);
-    }, 2000);
+    verificarSessao();
   }, []);
 
-  const login = (dadosUsuario) => {
-    setUsuario(dadosUsuario);
+  const verificarSessao = async () => {
+    try {
+      const usuarioSalvo = await AutenticacaoService.buscarUsuarioLogado();
+      if (usuarioSalvo) {
+        setUsuario(usuarioSalvo);
+      }
+    } catch (error) {
+      console.error('Erro ao verificar sessão:', error);
+    } finally {
+      setCarregando(false);
+    }
   };
 
-  const logout = () => {
+  const login = async (email, senha) => {
+    setCarregando(true);
+    const resultado = await AutenticacaoService.login(email, senha);
+    setCarregando(false);
+    
+    if (resultado.sucesso) {
+      setUsuario(resultado.usuario);
+    }
+    
+    return resultado;
+  };
+
+  const cadastrar = async (nome, email, senha) => {
+    setCarregando(true);
+    const resultado = await AutenticacaoService.cadastrar(nome, email, senha);
+    setCarregando(false);
+    
+    return resultado;
+  };
+
+  const logout = async () => {
+    setCarregando(true);
+    await AutenticacaoService.logout();
     setUsuario(null);
+    setCarregando(false);
+  };
+
+  const ehAdmin = () => {
+    return usuario?.tipo === 'admin';
+  };
+
+  const ehUsuarioComum = () => {
+    return usuario?.tipo === 'comum';
   };
 
   const valor = {
     usuario,
     carregando,
     login,
+    cadastrar,
     logout,
+    ehAdmin,
+    ehUsuarioComum,
     estaLogado: !!usuario,
   };
 
