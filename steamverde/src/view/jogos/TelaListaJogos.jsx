@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { View, StyleSheet, FlatList, RefreshControl, Image, Alert } from 'react-native';
 import { 
   Appbar, 
   Card, 
@@ -11,7 +11,8 @@ import {
   Text,
   FAB,
   Badge,
-  Snackbar
+  Snackbar,
+  IconButton
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
@@ -23,7 +24,7 @@ import FiltroJogos from '../components/common/FiltroJogos';
 const TelaListaJogos = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { jogos, carregando, buscarJogos } = useJogos();
+  const { jogos, carregando, buscarJogos, excluirJogo } = useJogos();
   const { adicionarAoCarrinho, verificarSeEstaNoCarrinho, calcularQuantidadeTotal } = useCarrinhoContext();
   const { ehAdmin } = useAuth();
   const [atualizando, setAtualizando] = useState(false);
@@ -146,8 +147,54 @@ const TelaListaJogos = () => {
     navigation.navigate('Carrinho');
   };
 
+  const confirmarExclusao = (jogo) => {
+    Alert.alert(
+      'Confirmar Exclusão',
+      `Deseja realmente excluir "${jogo.nome}"?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Excluir', 
+          style: 'destructive', 
+          onPress: async () => {
+            const resultado = await excluirJogo(jogo.id);
+            if (resultado.sucesso) {
+              setSnackbar({ 
+                visivel: true, 
+                mensagem: `${jogo.nome} excluído com sucesso!` 
+              });
+              carregarJogos();
+            } else {
+              setSnackbar({ 
+                visivel: true, 
+                mensagem: `Erro ao excluir: ${resultado.erro}` 
+              });
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const renderizarJogo = ({ item: jogo }) => (
     <Card style={estilos.cartaoJogo} onPress={() => navegarParaDetalhe(jogo)}>
+      {jogo.imagem && (
+        <Card.Cover 
+          source={{ uri: jogo.imagem }} 
+          style={estilos.imagemJogo}
+          resizeMode="cover"
+        />
+      )}
+      {ehAdmin() && (
+        <IconButton
+          icon="delete"
+          iconColor="#f44336"
+          containerColor="rgba(0, 0, 0, 0.6)"
+          size={20}
+          style={estilos.botaoExcluir}
+          onPress={() => confirmarExclusao(jogo)}
+        />
+      )}
       <Card.Content>
         <View style={estilos.cabecalhoJogo}>
           <Title style={estilos.nomeJogo} numberOfLines={1}>{jogo.nome}</Title>
@@ -307,7 +354,7 @@ const TelaListaJogos = () => {
 const estilos = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#121212',
   },
   lista: {
     padding: 16,
@@ -320,35 +367,51 @@ const estilos = StyleSheet.create({
     marginBottom: 12,
     elevation: 3,
     borderRadius: 12,
+    backgroundColor: '#1E1E1E',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  botaoExcluir: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 10,
+    elevation: 5,
+  },
+  imagemJogo: {
+    height: 180,
+    backgroundColor: '#2A2A2A',
   },
   cabecalhoJogo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 8,
+    marginTop: 8,
   },
   nomeJogo: {
     flex: 1,
     marginRight: 12,
-    color: '#2E7D32',
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
   },
   chipCategoria: {
-    backgroundColor: '#E8F5E8',
+    backgroundColor: '#2E7D32',
   },
   textoChip: {
-    color: '#2E7D32',
+    color: '#FFFFFF',
     fontSize: 12,
   },
   desenvolvedor: {
-    color: '#666',
+    color: '#B0B0B0',
     fontStyle: 'italic',
     marginBottom: 8,
   },
   descricao: {
     marginBottom: 16,
     lineHeight: 20,
+    color: '#E0E0E0',
   },
   rodapeJogo: {
     flexDirection: 'row',
