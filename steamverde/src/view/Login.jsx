@@ -136,7 +136,7 @@ const Login = () => {
 const estilos = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#121212',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -150,17 +150,18 @@ const estilos = StyleSheet.create({
     padding: 20,
     elevation: 4,
     borderRadius: 12,
+    backgroundColor: '#1E1E1E',
   },
   titulo: {
     textAlign: 'center',
     marginBottom: 30,
-    color: '#2E7D32',
+    color: '#4CAF50',
     fontSize: 24,
     fontWeight: 'bold',
   },
   input: {
     marginBottom: 12,
-    backgroundColor: 'white',
+    backgroundColor: '#2A2A2A',
   },
   erro: {
     marginBottom: 8,
@@ -178,11 +179,11 @@ const estilos = StyleSheet.create({
   linhaDivisor: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#333333',
   },
   textoDivisor: {
     marginHorizontal: 10,
-    color: '#666',
+    color: '#B0B0B0',
     fontSize: 14,
   },
   botaoCadastro: {
@@ -193,7 +194,7 @@ const estilos = StyleSheet.create({
   containerDica: {
     marginTop: 24,
     padding: 12,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#1E3A20',
     borderRadius: 8,
     borderLeftWidth: 4,
     borderLeftColor: '#4CAF50',
@@ -201,12 +202,12 @@ const estilos = StyleSheet.create({
   textoDica: {
     fontSize: 13,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#4CAF50',
     marginBottom: 8,
   },
   textoDicaInfo: {
     fontSize: 12,
-    color: '#666',
+    color: '#B0B0B0',
     marginBottom: 4,
     fontFamily: 'monospace',
   },
