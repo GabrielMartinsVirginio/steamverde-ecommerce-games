@@ -17,11 +17,13 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useAuth } from './components/authProvider/ProvedorAutenticacao';
 
 const { width } = Dimensions.get('window');
 
 const Home = () => {
   const navigation = useNavigation();
+  const { ehAdmin, usuario, logout } = useAuth();
   const [modalBuscaVisivel, setModalBuscaVisivel] = useState(false);
   const [termoBusca, setTermoBusca] = useState('');
 
@@ -39,6 +41,11 @@ const Home = () => {
       navigation.navigate('ListaJogos', { termoBusca: termoBusca.trim() });
       fecharBusca();
     }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
   };
 
   const atalhos = [
@@ -82,6 +89,12 @@ const Home = () => {
           size={24}
           onPress={abrirBusca}
         />
+        <IconButton 
+          icon="logout" 
+          iconColor="white" 
+          size={24}
+          onPress={handleLogout}
+        />
       </Appbar.Header>
 
       <ScrollView style={estilos.conteudo} showsVerticalScrollIndicator={false}>
@@ -96,9 +109,11 @@ const Home = () => {
             icon="gamepad-variant" 
             style={estilos.avatarPrincipal} 
           />
-          <Title style={estilos.tituloBoasVindas}>Bem-vindo ao SteamVerde</Title>
+          <Title style={estilos.tituloBoasVindas}>
+            Bem-vindo, {usuario?.nome || 'Usuário'}!
+          </Title>
           <Text style={estilos.subtituloBoasVindas}>
-            Sua loja de games virtuais favorita
+            {ehAdmin() ? '🎮 Painel Administrativo' : 'Sua loja de games virtuais favorita'}
           </Text>
         </LinearGradient>
 
@@ -145,16 +160,18 @@ const Home = () => {
         </View>
         
         <View style={estilos.containerBotoes}>
-          <Button 
-            mode="contained" 
-            icon="plus-circle"
-            style={estilos.botaoAcaoPrincipal}
-            contentStyle={estilos.conteudoBotao}
-            labelStyle={estilos.textoBotao}
-            onPress={() => navigation.navigate('CadastroJogo')}
-          >
-            Cadastrar Produto
-          </Button>
+          {ehAdmin() && (
+            <Button 
+              mode="contained" 
+              icon="plus-circle"
+              style={estilos.botaoAcaoPrincipal}
+              contentStyle={estilos.conteudoBotao}
+              labelStyle={estilos.textoBotao}
+              onPress={() => navigation.navigate('CadastroJogo')}
+            >
+              Cadastrar Produto
+            </Button>
+          )}
           
           <Button 
             mode="outlined" 
