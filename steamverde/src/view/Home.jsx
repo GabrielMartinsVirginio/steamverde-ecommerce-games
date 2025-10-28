@@ -14,18 +14,27 @@ import {
   Portal,
   Modal
 } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from './components/authProvider/ProvedorAutenticacao';
+import { useJogos } from '../utils/useJogos';
+import CarrosselJogos from './components/common/CarrosselJogos';
 
 const { width } = Dimensions.get('window');
 
 const Home = () => {
   const navigation = useNavigation();
   const { ehAdmin, usuario, logout } = useAuth();
+  const { jogos, buscarJogos } = useJogos();
   const [modalBuscaVisivel, setModalBuscaVisivel] = useState(false);
   const [termoBusca, setTermoBusca] = useState('');
+
+  useFocusEffect(
+    React.useCallback(() => {
+      buscarJogos();
+    }, [])
+  );
 
   const abrirBusca = () => {
     setModalBuscaVisivel(true);
@@ -116,6 +125,16 @@ const Home = () => {
             {ehAdmin() ? '🎮 Painel Administrativo' : 'Sua loja de games virtuais favorita'}
           </Text>
         </LinearGradient>
+
+        <View style={estilos.secaoTitulo}>
+          <Text style={estilos.textoSecao}>Jogos em Destaque</Text>
+          <Divider style={estilos.divisor} />
+        </View>
+
+        <CarrosselJogos 
+          jogos={jogos.slice(0, 10)} 
+          onJogoPress={(jogo) => navigation.navigate('DetalheJogo', { jogo })}
+        />
 
         <View style={estilos.secaoTitulo}>
           <Text style={estilos.textoSecao}>Acesso Rápido</Text>
@@ -230,10 +249,10 @@ const Home = () => {
 const estilos = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#121212',
   },
   header: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#1E1E1E',
     elevation: 4,
   },
   headerConteudo: {
@@ -288,11 +307,11 @@ const estilos = StyleSheet.create({
   textoSecao: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#4CAF50',
     marginBottom: 8,
   },
   divisor: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#333333',
     height: 1,
   },
   containerAtalhos: {
@@ -302,9 +321,10 @@ const estilos = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 12,
     elevation: 3,
+    backgroundColor: '#1E1E1E',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
   },
   conteudoAtalho: {
@@ -322,10 +342,11 @@ const estilos = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 4,
+    color: '#FFFFFF',
   },
   subtituloAtalho: {
     fontSize: 14,
-    color: '#666',
+    color: '#B0B0B0',
   },
   containerBotoes: {
     paddingHorizontal: 16,
@@ -363,7 +384,7 @@ const estilos = StyleSheet.create({
     justifyContent: 'center',
   },
   containerBusca: {
-    backgroundColor: 'white',
+    backgroundColor: '#1E1E1E',
     padding: 24,
     borderRadius: 16,
     elevation: 8,
@@ -371,13 +392,13 @@ const estilos = StyleSheet.create({
   tituloBusca: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#4CAF50',
     textAlign: 'center',
     marginBottom: 16,
   },
   barraBusca: {
     marginBottom: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#2A2A2A',
   },
   botoesBusca: {
     flexDirection: 'row',
