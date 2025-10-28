@@ -1,20 +1,16 @@
-
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Appbar, Title, Avatar, Button, Card, Divider, Text, IconButton } from 'react-native-paper';
+import { Appbar, Title, Avatar, Button, Card, Divider, Text, Chip } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-
-const usuarioMock = {
-  nome: 'Gabriel Martins Virginio',
-  email: 'gabriel@steamverde.com',
-  saldo: 120.50,
-};
+import { useAuth } from '../components/authProvider/ProvedorAutenticacao';
 
 const TelaPerfil = () => {
   const navigation = useNavigation();
+  const { usuario, logout, ehAdmin } = useAuth();
 
-  const sair = () => {
+  const sair = async () => {
+    await logout();
     navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
   };
 
@@ -28,10 +24,21 @@ const TelaPerfil = () => {
       <View style={estilos.conteudo}>
         <Card style={estilos.cardPerfil}>
           <Card.Content style={estilos.cardContent}>
-            <Avatar.Icon size={80} icon="account" style={estilos.avatar} />
-            <Title style={estilos.nome}>{usuarioMock.nome}</Title>
-            <Text style={estilos.email}>{usuarioMock.email}</Text>
-            <Text style={estilos.saldo}>Saldo: R$ {usuarioMock.saldo.toFixed(2)}</Text>
+            <Avatar.Icon 
+              size={80} 
+              icon={ehAdmin() ? "shield-account" : "account"} 
+              style={estilos.avatar} 
+            />
+            <Title style={estilos.nome}>{usuario?.nome || 'Usuário'}</Title>
+            <Text style={estilos.email}>{usuario?.email || 'email@example.com'}</Text>
+            
+            <Chip 
+              style={[estilos.chipTipo, ehAdmin() ? estilos.chipAdmin : estilos.chipComum]}
+              textStyle={estilos.textoChip}
+              icon={ehAdmin() ? "crown" : "account"}
+            >
+              {ehAdmin() ? 'Administrador' : 'Usuário Comum'}
+            </Chip>
           </Card.Content>
         </Card>
 
@@ -89,12 +96,20 @@ const estilos = StyleSheet.create({
   email: {
     fontSize: 16,
     color: '#666',
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  saldo: {
-    fontSize: 16,
-    color: '#388E3C',
-    marginBottom: 8,
+  chipTipo: {
+    marginTop: 8,
+  },
+  chipAdmin: {
+    backgroundColor: '#FFB74D',
+  },
+  chipComum: {
+    backgroundColor: '#E8F5E9',
+  },
+  textoChip: {
+    color: '#2E7D32',
+    fontWeight: 'bold',
   },
   divisor: {
     width: '100%',
