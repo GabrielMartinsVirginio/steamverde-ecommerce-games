@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, ImageBackground } from 'react-native';
 import { 
   Appbar, 
   Title, 
@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCarrinhoContext } from '../components/authProvider/ProvedorCarrinho';
 import { useAuth } from '../components/authProvider/ProvedorAutenticacao';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const TelaDetalheJogo = () => {
   const navigation = useNavigation();
@@ -58,15 +59,30 @@ const TelaDetalheJogo = () => {
 
   return (
     <SafeAreaView style={estilos.container}>
-      <Appbar.Header>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title="Detalhe do Jogo" />
+      <Appbar.Header style={estilos.header}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} color="#FFFFFF" />
+        <Appbar.Content title="Detalhe do Jogo" titleStyle={{ color: '#FFFFFF' }} />
         {ehAdmin() && (
-          <Appbar.Action icon="pencil" onPress={handleEditar} />
+          <Appbar.Action icon="pencil" onPress={handleEditar} color="#FFFFFF" />
         )}
       </Appbar.Header>
 
       <ScrollView style={estilos.conteudo} showsVerticalScrollIndicator={false}>
+        {jogoAtual.imagem && (
+          <ImageBackground
+            source={{ uri: jogoAtual.imagem }}
+            style={estilos.imagemFundo}
+            resizeMode="cover"
+          >
+            <LinearGradient
+              colors={['rgba(18, 18, 18, 0.3)', 'rgba(18, 18, 18, 0.9)', '#121212']}
+              style={estilos.gradiente}
+            >
+              <Title style={estilos.nomeJogoFundo}>{jogoAtual.nome}</Title>
+            </LinearGradient>
+          </ImageBackground>
+        )}
+
         <Card style={estilos.cartaoPrincipal}>
           <Card.Content>
             <View style={estilos.cabecalho}>
@@ -141,15 +157,37 @@ const TelaDetalheJogo = () => {
 const estilos = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#121212',
+  },
+  header: {
+    backgroundColor: '#1E1E1E',
   },
   conteudo: {
     flex: 1,
   },
+  imagemFundo: {
+    width: '100%',
+    height: 300,
+  },
+  gradiente: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: 20,
+  },
+  nomeJogoFundo: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
+  },
   cartaoPrincipal: {
     margin: 16,
+    marginTop: jogoAtual => jogoAtual?.imagem ? 0 : 16,
     elevation: 4,
     borderRadius: 12,
+    backgroundColor: '#1E1E1E',
   },
   cabecalho: {
     flexDirection: 'row',
@@ -161,19 +199,19 @@ const estilos = StyleSheet.create({
     flex: 1,
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#4CAF50',
     marginRight: 12,
   },
   chipCategoria: {
-    backgroundColor: '#E8F5E8',
+    backgroundColor: '#2E7D32',
   },
   textoChip: {
-    color: '#2E7D32',
+    color: '#FFFFFF',
     fontSize: 12,
   },
   desenvolvedor: {
     fontSize: 16,
-    color: '#666',
+    color: '#B0B0B0',
     fontStyle: 'italic',
     marginBottom: 16,
   },
@@ -185,12 +223,12 @@ const estilos = StyleSheet.create({
   },
   divisor: {
     marginVertical: 16,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#333333',
   },
   secaoTitulo: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#4CAF50',
     marginBottom: 8,
   },
   descricao: {
@@ -198,6 +236,7 @@ const estilos = StyleSheet.create({
     lineHeight: 24,
     textAlign: 'justify',
     marginBottom: 8,
+    color: '#E0E0E0',
   },
   infoContainer: {
     gap: 8,
@@ -209,16 +248,17 @@ const estilos = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 14,
-    color: '#666',
+    color: '#B0B0B0',
     fontWeight: '600',
   },
   infoValor: {
     fontSize: 14,
-    color: '#333',
+    color: '#FFFFFF',
   },
   rodape: {
     padding: 16,
     elevation: 8,
+    backgroundColor: '#1E1E1E',
   },
   containerBotoes: {
     gap: 12,
