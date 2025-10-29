@@ -50,7 +50,6 @@ class AsyncStorageService {
     }
   }
 
-  // Métodos genéricos para qualquer tipo de dado
   static async salvarDados(chave, dados) {
     try {
       const dadosJson = JSON.stringify(dados);

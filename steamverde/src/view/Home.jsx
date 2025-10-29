@@ -59,10 +59,8 @@ const Home = () => {
 
   const navegarPara = (rota) => {
     if (rota === 'Carrinho') {
-      // Navega para a tab Carrinho dentro do TabNavigator atual
-      navigation.navigate('Carrinho');
+      navigation.navigate('Home', { screen: 'Carrinho' });
     } else {
-      // Outras rotas navegam normalmente
       navigation.navigate(rota);
     }
   };

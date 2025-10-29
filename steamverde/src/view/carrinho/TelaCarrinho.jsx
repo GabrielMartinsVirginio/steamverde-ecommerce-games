@@ -81,7 +81,6 @@ const TelaCarrinho = () => {
     setProcessandoCompra(true);
 
     try {
-      // Simular processamento da compra
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       const pedido = {
