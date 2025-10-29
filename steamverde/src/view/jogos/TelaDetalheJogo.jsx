@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, ImageBackground } from 'react-native';
 import { 
   Appbar, 
@@ -9,11 +9,14 @@ import {
   Chip, 
   Text,
   Divider,
-  Surface
+  Surface,
+  IconButton,
+  Snackbar
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCarrinhoContext } from '../components/authProvider/ProvedorCarrinho';
+import { useFavoritosContext } from '../components/authProvider/ProvedorFavoritos';
 import { useAuth } from '../components/authProvider/ProvedorAutenticacao';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -22,7 +25,9 @@ const TelaDetalheJogo = () => {
   const route = useRoute();
   const jogo = route.params?.jogo;
   const { adicionarAoCarrinho, verificarSeEstaNoCarrinho } = useCarrinhoContext();
+  const { adicionarFavorito, removerFavorito, ehFavorito } = useFavoritosContext();
   const { ehAdmin } = useAuth();
+  const [snackbar, setSnackbar] = useState({ visivel: false, mensagem: '' });
 
   // Jogo padrão caso não seja passado parâmetro
   const jogoDefault = {
@@ -50,11 +55,21 @@ const TelaDetalheJogo = () => {
 
   const handleAdicionarCarrinho = () => {
     adicionarAoCarrinho(jogoAtual);
-    navigation.navigate('Carrinho');
+    navigation.navigate('Home', { screen: 'Carrinho' });
   };
 
   const handleEditar = () => {
     navigation.navigate('CadastroJogo', { jogo: jogoAtual });
+  };
+
+  const handleToggleFavorito = async () => {
+    if (ehFavorito(jogoAtual.id)) {
+      const resultado = await removerFavorito(jogoAtual.id);
+      setSnackbar({ visivel: true, mensagem: resultado.mensagem });
+    } else {
+      const resultado = await adicionarFavorito(jogoAtual);
+      setSnackbar({ visivel: true, mensagem: resultado.mensagem });
+    }
   };
 
   return (
@@ -62,6 +77,11 @@ const TelaDetalheJogo = () => {
       <Appbar.Header style={estilos.header}>
         <Appbar.BackAction onPress={() => navigation.goBack()} color="#FFFFFF" />
         <Appbar.Content title="Detalhe do Jogo" titleStyle={{ color: '#FFFFFF' }} />
+        <Appbar.Action 
+          icon={ehFavorito(jogoAtual.id) ? "heart" : "heart-outline"} 
+          onPress={handleToggleFavorito} 
+          color={ehFavorito(jogoAtual.id) ? "#f44336" : "#FFFFFF"} 
+        />
         {ehAdmin() && (
           <Appbar.Action icon="pencil" onPress={handleEditar} color="#FFFFFF" />
         )}
@@ -150,6 +170,15 @@ const TelaDetalheJogo = () => {
           </Button>
         </View>
       </Surface>
+
+      <Snackbar
+        visible={snackbar.visivel}
+        onDismiss={() => setSnackbar(prev => ({ ...prev, visivel: false }))}
+        duration={2000}
+        style={estilos.snackbar}
+      >
+        {snackbar.mensagem}
+      </Snackbar>
     </SafeAreaView>
   );
 };
@@ -269,6 +298,11 @@ const estilos = StyleSheet.create({
   },
   botaoNoCarrinho: {
     backgroundColor: '#2E7D32',
+  },
+  snackbar: {
+    marginBottom: 16,
+    marginHorizontal: 16,
+    borderRadius: 8,
   },
 });
 
