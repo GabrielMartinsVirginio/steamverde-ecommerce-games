@@ -93,6 +93,20 @@ class TratamentoErroService {
     return logInfo;
   }
 
+  static tratarErro(erro, contextoMensagem = '') {
+    const analiseErro = this.analisarErro(erro);
+    const mensagem = contextoMensagem || analiseErro.mensagem;
+    
+    console.error(`${mensagem}:`, erro);
+    
+    return {
+      tipo: analiseErro.tipo,
+      mensagem: mensagem,
+      recuperavel: analiseErro.recuperavel,
+      erro: erro
+    };
+  }
+
   static simularTimeoutOperacao(operacao, timeout = 10000) {
     return Promise.race([
       operacao,

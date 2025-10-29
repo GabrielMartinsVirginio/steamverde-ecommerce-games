@@ -32,7 +32,8 @@ const TelaCadastroJogo = () => {
     categoria: '',
     descricao: '',
     desenvolvedor: '',
-    dataLancamento: ''
+    dataLancamento: '',
+    imagem: ''
   });
 
   const [erros, setErros] = useState({});
@@ -53,7 +54,8 @@ const TelaCadastroJogo = () => {
         categoria: jogoParaEditar.categoria || '',
         descricao: jogoParaEditar.descricao || '',
         desenvolvedor: jogoParaEditar.desenvolvedor || '',
-        dataLancamento: jogoParaEditar.dataLancamento || ''
+        dataLancamento: jogoParaEditar.dataLancamento || '',
+        imagem: jogoParaEditar.imagem || ''
       });
     }
   }, [isEdicao, jogoParaEditar]);
@@ -122,6 +124,7 @@ const TelaCadastroJogo = () => {
         descricao: formulario.descricao.trim(),
         desenvolvedor: formulario.desenvolvedor.trim(),
         dataLancamento: formulario.dataLancamento || new Date().toISOString().split('T')[0],
+        imagem: formulario.imagem.trim(),
         criadoEm: isEdicao ? jogoParaEditar.criadoEm : new Date().toISOString(),
         atualizadoEm: new Date().toISOString()
       };
@@ -188,21 +191,23 @@ const TelaCadastroJogo = () => {
       categoria: '',
       descricao: '',
       desenvolvedor: '',
-      dataLancamento: ''
+      dataLancamento: '',
+      imagem: ''
     });
     setErros({});
   };
 
   return (
     <SafeAreaView style={estilos.container}>
-      <Appbar.Header>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title={isEdicao ? 'Editar Jogo' : 'Cadastrar Jogo'} />
+      <Appbar.Header style={{ backgroundColor: '#1E1E1E' }}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} color="#FFFFFF" />
+        <Appbar.Content title={isEdicao ? 'Editar Jogo' : 'Cadastrar Jogo'} titleStyle={{ color: '#FFFFFF' }} />
         {isEdicao && (
           <Appbar.Action 
             icon="delete" 
             onPress={confirmarExclusao}
             disabled={carregandoHook}
+            color="#FFFFFF"
           />
         )}
       </Appbar.Header>
@@ -224,6 +229,11 @@ const TelaCadastroJogo = () => {
               disabled={carregandoHook}
               placeholder="Ex: Cyberpunk 2077"
               maxLength={100}
+              textColor="#FFFFFF"
+              placeholderTextColor="#888"
+              outlineColor="#4CAF50"
+              activeOutlineColor="#4CAF50"
+              theme={{ colors: { onSurfaceVariant: '#B0B0B0' } }}
             />
             <View style={estilos.infoInput}>
               {erros.nome && <Text style={estilos.textoErro}>{erros.nome}</Text>}
@@ -245,10 +255,15 @@ const TelaCadastroJogo = () => {
               error={!!erros.preco}
               disabled={carregandoHook}
               placeholder="Ex: 99,90"
+              textColor="#FFFFFF"
+              placeholderTextColor="#888"
+              outlineColor="#4CAF50"
+              activeOutlineColor="#4CAF50"
+              theme={{ colors: { onSurfaceVariant: '#B0B0B0' } }}
             />
             {erros.preco && <Text style={estilos.textoErro}>{erros.preco}</Text>}
 
-            <Menu
+              <Menu
               visible={menuCategoria}
               onDismiss={() => setMenuCategoria(false)}
               anchor={
@@ -262,6 +277,10 @@ const TelaCadastroJogo = () => {
                   right={<TextInput.Icon icon="chevron-down" onPress={() => setMenuCategoria(true)} />}
                   onFocus={() => setMenuCategoria(true)}
                   showSoftInputOnFocus={false}
+                  textColor="#FFFFFF"
+                  outlineColor="#4CAF50"
+                  activeOutlineColor="#4CAF50"
+                  theme={{ colors: { onSurfaceVariant: '#B0B0B0' } }}
                 />
               }
             >
@@ -286,8 +305,28 @@ const TelaCadastroJogo = () => {
               style={estilos.input}
               error={!!erros.desenvolvedor}
               disabled={carregandoHook}
+              textColor="#FFFFFF"
+              placeholderTextColor="#888"
+              outlineColor="#4CAF50"
+              activeOutlineColor="#4CAF50"
+              theme={{ colors: { onSurfaceVariant: '#B0B0B0' } }}
             />
             {erros.desenvolvedor && <Text style={estilos.textoErro}>{erros.desenvolvedor}</Text>}
+
+            <TextInput
+              label="URL da Imagem"
+              value={formulario.imagem}
+              onChangeText={(valor) => atualizarCampo('imagem', valor)}
+              mode="outlined"
+              style={estilos.input}
+              disabled={carregandoHook}
+              placeholder="https://exemplo.com/imagem.jpg"
+              textColor="#FFFFFF"
+              placeholderTextColor="#888"
+              outlineColor="#4CAF50"
+              activeOutlineColor="#4CAF50"
+              theme={{ colors: { onSurfaceVariant: '#B0B0B0' } }}
+            />
 
             <TextInput
               label="Data de Lançamento"
@@ -297,6 +336,11 @@ const TelaCadastroJogo = () => {
               placeholder="AAAA-MM-DD"
               style={estilos.input}
               disabled={carregandoHook}
+              textColor="#FFFFFF"
+              placeholderTextColor="#888"
+              outlineColor="#4CAF50"
+              activeOutlineColor="#4CAF50"
+              theme={{ colors: { onSurfaceVariant: '#B0B0B0' } }}
             />
 
             <TextInput
@@ -311,6 +355,11 @@ const TelaCadastroJogo = () => {
               disabled={carregandoHook}
               placeholder="Descreva o jogo, gameplay, enredo..."
               maxLength={500}
+              textColor="#FFFFFF"
+              placeholderTextColor="#888"
+              outlineColor="#4CAF50"
+              activeOutlineColor="#4CAF50"
+              theme={{ colors: { onSurfaceVariant: '#B0B0B0' } }}
             />
             <View style={estilos.infoInput}>
               {erros.descricao && <Text style={estilos.textoErro}>{erros.descricao}</Text>}
@@ -374,7 +423,7 @@ const TelaCadastroJogo = () => {
 const estilos = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#121212',
   },
   conteudo: {
     flex: 1,
@@ -383,21 +432,22 @@ const estilos = StyleSheet.create({
     margin: 16,
     elevation: 4,
     borderRadius: 12,
+    backgroundColor: '#1E1E1E',
   },
   tituloFormulario: {
     textAlign: 'center',
-    color: '#2E7D32',
+    color: '#4CAF50',
     marginBottom: 20,
     fontSize: 22,
     fontWeight: 'bold',
   },
   input: {
     marginBottom: 12,
-    backgroundColor: 'white',
+    backgroundColor: '#2A2A2A',
   },
   inputDescricao: {
     marginBottom: 12,
-    backgroundColor: 'white',
+    backgroundColor: '#2A2A2A',
     minHeight: 100,
   },
   infoInput: {
@@ -413,13 +463,13 @@ const estilos = StyleSheet.create({
     flex: 1,
   },
   contadorCaracteres: {
-    color: '#666',
+    color: '#B0B0B0',
     fontSize: 11,
     fontStyle: 'italic',
   },
   divisor: {
     marginVertical: 20,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#333333',
   },
   containerBotoes: {
     gap: 12,

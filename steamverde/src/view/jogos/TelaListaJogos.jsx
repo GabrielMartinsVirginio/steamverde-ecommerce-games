@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { View, StyleSheet, FlatList, RefreshControl, Image, Alert } from 'react-native';
 import { 
   Appbar, 
   Card, 
@@ -11,35 +11,89 @@ import {
   Text,
   FAB,
   Badge,
-  Snackbar
+  Snackbar,
+  IconButton
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useJogos } from '../../utils/useJogos';
 import { useCarrinhoContext } from '../components/authProvider/ProvedorCarrinho';
+import { useFavoritosContext } from '../components/authProvider/ProvedorFavoritos';
+import { useAuth } from '../components/authProvider/ProvedorAutenticacao';
+import FiltroJogos from '../components/common/FiltroJogos';
 
 const TelaListaJogos = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { jogos, carregando, buscarJogos } = useJogos();
+  const { jogos, carregando, buscarJogos, excluirJogo } = useJogos();
   const { adicionarAoCarrinho, verificarSeEstaNoCarrinho, calcularQuantidadeTotal } = useCarrinhoContext();
+  const { adicionarFavorito, removerFavorito, ehFavorito } = useFavoritosContext();
+  const { ehAdmin } = useAuth();
   const [atualizando, setAtualizando] = useState(false);
   const [snackbar, setSnackbar] = useState({ visivel: false, mensagem: '' });
   
   const termoBuscaRecebido = route.params?.termoBusca;
+  const categoriaSelecionada = route.params?.categoriaSelecionada;
   const [jogosFiltrados, setJogosFiltrados] = useState([]);
+  const [filtros, setFiltros] = useState({ 
+    categorias: categoriaSelecionada ? [categoriaSelecionada] : [], 
+    precoMin: '', 
+    precoMax: '', 
+    ordenacao: 'nome' 
+  });
+  const [filtrosAplicados, setFiltrosAplicados] = useState({ 
+    categorias: categoriaSelecionada ? [categoriaSelecionada] : [], 
+    precoMin: '', 
+    precoMax: '', 
+    ordenacao: 'nome' 
+  });
 
-  const filtrarJogos = (termoBusca) => {
-    if (!termoBusca) {
-      return jogos;
+  const aplicarFiltrosEOrdenacao = (jogosBase, termoBusca, filtrosAtivos) => {
+    let jogosProcessados = [...jogosBase];
+
+    if (termoBusca) {
+      const termo = termoBusca.toLowerCase().trim();
+      jogosProcessados = jogosProcessados.filter(jogo => 
+        jogo.nome.toLowerCase().includes(termo) ||
+        jogo.categoria.toLowerCase().includes(termo) ||
+        jogo.desenvolvedor.toLowerCase().includes(termo) ||
+        jogo.descricao.toLowerCase().includes(termo)
+      );
     }
-    
-    const termo = termoBusca.toLowerCase();
-    return jogos.filter(jogo => 
-      jogo.nome.toLowerCase().includes(termo) ||
-      jogo.desenvolvedor.toLowerCase().includes(termo) ||
-      jogo.categoria.toLowerCase().includes(termo)
-    );
+
+    if (filtrosAtivos.categorias.length > 0) {
+      jogosProcessados = jogosProcessados.filter(jogo => 
+        filtrosAtivos.categorias.includes(jogo.categoria)
+      );
+    }
+
+    if (filtrosAtivos.precoMin || filtrosAtivos.precoMax) {
+      const precoMin = filtrosAtivos.precoMin ? parseFloat(filtrosAtivos.precoMin.replace(',', '.')) : 0;
+      const precoMax = filtrosAtivos.precoMax ? parseFloat(filtrosAtivos.precoMax.replace(',', '.')) : Infinity;
+      
+      jogosProcessados = jogosProcessados.filter(jogo => 
+        jogo.preco >= precoMin && jogo.preco <= precoMax
+      );
+    }
+
+    switch (filtrosAtivos.ordenacao) {
+      case 'nome':
+        jogosProcessados.sort((a, b) => a.nome.localeCompare(b.nome));
+        break;
+      case 'nome-desc':
+        jogosProcessados.sort((a, b) => b.nome.localeCompare(a.nome));
+        break;
+      case 'preco':
+        jogosProcessados.sort((a, b) => a.preco - b.preco);
+        break;
+      case 'preco-desc':
+        jogosProcessados.sort((a, b) => b.preco - a.preco);
+        break;
+      default:
+        break;
+    }
+
+    return jogosProcessados;
   };
 
   const carregarJogos = async () => {
@@ -51,13 +105,28 @@ const TelaListaJogos = () => {
   useFocusEffect(
     React.useCallback(() => {
       carregarJogos();
-    }, [])
+      if (categoriaSelecionada) {
+        const novosFiltros = {
+          categorias: [categoriaSelecionada],
+          precoMin: '',
+          precoMax: '',
+          ordenacao: 'nome'
+        };
+        setFiltros(novosFiltros);
+        setFiltrosAplicados(novosFiltros);
+      }
+    }, [categoriaSelecionada])
   );
 
   useEffect(() => {
-    const jogosFiltrados = filtrarJogos(termoBuscaRecebido);
-    setJogosFiltrados(jogosFiltrados);
-  }, [jogos, termoBuscaRecebido]);
+    const jogosProcessados = aplicarFiltrosEOrdenacao(jogos, termoBuscaRecebido, filtrosAplicados);
+    setJogosFiltrados(jogosProcessados);
+  }, [jogos, termoBuscaRecebido, filtrosAplicados]);
+
+  const handleFiltroChange = (novosFiltros) => {
+    setFiltros(novosFiltros);
+    setFiltrosAplicados(novosFiltros);
+  };
 
   const formatarPreco = (preco) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -75,6 +144,11 @@ const TelaListaJogos = () => {
   };
 
   const adicionarJogoAoCarrinho = (jogo) => {
+    if (verificarSeEstaNoCarrinho(jogo.id)) {
+      navegarParaCarrinho();
+      return;
+    }
+    
     adicionarAoCarrinho(jogo);
     setSnackbar({ 
       visivel: true, 
@@ -83,11 +157,75 @@ const TelaListaJogos = () => {
   };
 
   const navegarParaCarrinho = () => {
-    navigation.navigate('Carrinho');
+    navigation.navigate('Home', { screen: 'Carrinho' });
+  };
+
+  const toggleFavorito = async (jogo) => {
+    if (ehFavorito(jogo.id)) {
+      const resultado = await removerFavorito(jogo.id);
+      setSnackbar({ visivel: true, mensagem: resultado.mensagem });
+    } else {
+      const resultado = await adicionarFavorito(jogo);
+      setSnackbar({ visivel: true, mensagem: resultado.mensagem });
+    }
+  };
+
+  const confirmarExclusao = (jogo) => {
+    Alert.alert(
+      'Confirmar Exclusão',
+      `Deseja realmente excluir "${jogo.nome}"?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Excluir', 
+          style: 'destructive', 
+          onPress: async () => {
+            const resultado = await excluirJogo(jogo.id);
+            if (resultado.sucesso) {
+              setSnackbar({ 
+                visivel: true, 
+                mensagem: `${jogo.nome} excluído com sucesso!` 
+              });
+              carregarJogos();
+            } else {
+              setSnackbar({ 
+                visivel: true, 
+                mensagem: `Erro ao excluir: ${resultado.erro}` 
+              });
+            }
+          }
+        }
+      ]
+    );
   };
 
   const renderizarJogo = ({ item: jogo }) => (
     <Card style={estilos.cartaoJogo} onPress={() => navegarParaDetalhe(jogo)}>
+      {jogo.imagem && (
+        <Card.Cover 
+          source={{ uri: jogo.imagem }} 
+          style={estilos.imagemJogo}
+          resizeMode="cover"
+        />
+      )}
+      <IconButton
+        icon={ehFavorito(jogo.id) ? "heart" : "heart-outline"}
+        iconColor={ehFavorito(jogo.id) ? "#f44336" : "#FFFFFF"}
+        containerColor="rgba(0, 0, 0, 0.6)"
+        size={20}
+        style={estilos.botaoFavorito}
+        onPress={() => toggleFavorito(jogo)}
+      />
+      {ehAdmin() && (
+        <IconButton
+          icon="delete"
+          iconColor="#f44336"
+          containerColor="rgba(0, 0, 0, 0.6)"
+          size={20}
+          style={estilos.botaoExcluir}
+          onPress={() => confirmarExclusao(jogo)}
+        />
+      )}
       <Card.Content>
         <View style={estilos.cabecalhoJogo}>
           <Title style={estilos.nomeJogo} numberOfLines={1}>{jogo.nome}</Title>
@@ -113,27 +251,28 @@ const TelaListaJogos = () => {
           
           <View style={estilos.containerBotoes}>
             <Button 
-              mode={verificarSeEstaNoCarrinho(jogo.id) ? "contained" : "contained"}
+              mode="contained"
               compact
               style={[
                 estilos.botaoComprar,
                 verificarSeEstaNoCarrinho(jogo.id) && estilos.botaoNoCarrinho
               ]}
               onPress={() => adicionarJogoAoCarrinho(jogo)}
-              icon={verificarSeEstaNoCarrinho(jogo.id) ? "check" : "cart-plus"}
-              disabled={false}
+              icon={verificarSeEstaNoCarrinho(jogo.id) ? "cart-arrow-right" : "cart-plus"}
             >
-              {verificarSeEstaNoCarrinho(jogo.id) ? "No Carrinho" : "Comprar"}
+              {verificarSeEstaNoCarrinho(jogo.id) ? "Ver Carrinho" : "Comprar"}
             </Button>
             
-            <Button 
-              mode="outlined" 
-              compact
-              style={estilos.botaoEditar}
-              onPress={() => navegarParaEdicao(jogo)}
-            >
-              Editar
-            </Button>
+            {ehAdmin() && (
+              <Button 
+                mode="outlined" 
+                compact
+                style={estilos.botaoEditar}
+                onPress={() => navegarParaEdicao(jogo)}
+              >
+                Editar
+              </Button>
+            )}
           </View>
         </View>
       </Card.Content>
@@ -148,7 +287,7 @@ const TelaListaJogos = () => {
       <Paragraph style={estilos.subtextoVazio}>
         {termoBuscaRecebido ? 'Tente outro termo de busca' : 'Adicione seu primeiro jogo ao catálogo'}
       </Paragraph>
-      {!termoBuscaRecebido && (
+      {!termoBuscaRecebido && ehAdmin() && (
         <Button 
           mode="contained" 
           onPress={() => navigation.navigate('CadastroJogo')}
@@ -197,6 +336,11 @@ const TelaListaJogos = () => {
         </View>
       </Appbar.Header>
 
+      <FiltroJogos 
+        onFiltroChange={handleFiltroChange}
+        filtroAtual={filtros}
+      />
+
       <FlatList
         data={dadosParaExibir}
         renderItem={renderizarJogo}
@@ -213,12 +357,14 @@ const TelaListaJogos = () => {
         showsVerticalScrollIndicator={false}
       />
 
-      <FAB
-        icon="plus"
-        style={estilos.fab}
-        onPress={() => navigation.navigate('CadastroJogo')}
-        label="Adicionar"
-      />
+      {ehAdmin() && (
+        <FAB
+          icon="plus"
+          style={estilos.fab}
+          onPress={() => navigation.navigate('CadastroJogo')}
+          label="Adicionar"
+        />
+      )}
 
       <Snackbar
         visible={snackbar.visivel}
@@ -239,7 +385,7 @@ const TelaListaJogos = () => {
 const estilos = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#121212',
   },
   lista: {
     padding: 16,
@@ -252,35 +398,58 @@ const estilos = StyleSheet.create({
     marginBottom: 12,
     elevation: 3,
     borderRadius: 12,
+    backgroundColor: '#1E1E1E',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  botaoFavorito: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    zIndex: 10,
+    elevation: 5,
+  },
+  botaoExcluir: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 10,
+    elevation: 5,
+  },
+  imagemJogo: {
+    height: 180,
+    backgroundColor: '#2A2A2A',
   },
   cabecalhoJogo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 8,
+    marginTop: 8,
   },
   nomeJogo: {
     flex: 1,
     marginRight: 12,
-    color: '#2E7D32',
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
   },
   chipCategoria: {
-    backgroundColor: '#E8F5E8',
+    backgroundColor: '#2E7D32',
   },
   textoChip: {
-    color: '#2E7D32',
+    color: '#FFFFFF',
     fontSize: 12,
   },
   desenvolvedor: {
-    color: '#666',
+    color: '#B0B0B0',
     fontStyle: 'italic',
     marginBottom: 8,
   },
   descricao: {
     marginBottom: 16,
     lineHeight: 20,
+    color: '#E0E0E0',
   },
   rodapeJogo: {
     flexDirection: 'row',

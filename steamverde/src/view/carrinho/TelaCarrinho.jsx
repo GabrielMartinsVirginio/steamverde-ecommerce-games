@@ -81,7 +81,6 @@ const TelaCarrinho = () => {
     setProcessandoCompra(true);
 
     try {
-      // Simular processamento da compra
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       const pedido = {
@@ -142,7 +141,8 @@ const TelaCarrinho = () => {
             <IconButton
               icon="minus"
               size={20}
-              mode="contained"
+              iconColor="#FFFFFF"
+              containerColor="#f44336"
               style={estilos.botaoQuantidade}
               onPress={() => diminuirQuantidade(item)}
             />
@@ -150,7 +150,8 @@ const TelaCarrinho = () => {
             <IconButton
               icon="plus"
               size={20}
-              mode="contained"
+              iconColor="#FFFFFF"
+              containerColor="#4CAF50"
               style={estilos.botaoQuantidade}
               onPress={() => aumentarQuantidade(item)}
             />
@@ -232,13 +233,14 @@ const TelaCarrinho = () => {
 
   return (
     <SafeAreaView style={estilos.container}>
-      <Appbar.Header>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title={`Carrinho (${calcularQuantidadeTotal()})`} />
+      <Appbar.Header style={{ backgroundColor: '#1E1E1E' }}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} color="#FFFFFF" />
+        <Appbar.Content title={`Carrinho (${calcularQuantidadeTotal()})`} titleStyle={{ color: '#FFFFFF' }} />
         {itensCarrinho.length > 0 && (
           <Appbar.Action 
             icon="cart-plus" 
             onPress={continuarComprando}
+            color="#FFFFFF"
           />
         )}
       </Appbar.Header>
@@ -277,7 +279,7 @@ const TelaCarrinho = () => {
 const estilos = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#121212',
   },
   conteudoCarrinho: {
     flex: 1,
@@ -290,6 +292,7 @@ const estilos = StyleSheet.create({
     marginBottom: 12,
     elevation: 3,
     borderRadius: 12,
+    backgroundColor: '#1E1E1E',
   },
   cabecalhoItem: {
     flexDirection: 'row',
@@ -302,19 +305,19 @@ const estilos = StyleSheet.create({
     marginRight: 8,
   },
   nomeItem: {
-    color: '#2E7D32',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   desenvolvedor: {
-    color: '#666',
+    color: '#B0B0B0',
     fontSize: 14,
     fontStyle: 'italic',
     marginBottom: 4,
   },
   precoUnitario: {
-    color: '#999',
+    color: '#888',
     fontSize: 12,
   },
   rodapeItem: {
@@ -325,11 +328,13 @@ const estilos = StyleSheet.create({
   controladorQuantidade: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#2A2A2A',
+    borderRadius: 8,
+    padding: 4,
+    gap: 8,
   },
   botaoQuantidade: {
-    backgroundColor: '#4CAF50',
-    width: 32,
-    height: 32,
+    margin: 0,
   },
   textoQuantidade: {
     fontSize: 18,
@@ -337,6 +342,7 @@ const estilos = StyleSheet.create({
     marginHorizontal: 16,
     minWidth: 24,
     textAlign: 'center',
+    color: '#FFFFFF',
   },
   precoTotal: {
     fontSize: 18,
@@ -348,9 +354,10 @@ const estilos = StyleSheet.create({
     padding: 20,
     borderRadius: 12,
     elevation: 4,
+    backgroundColor: '#1E1E1E',
   },
   tituloResumo: {
-    color: '#2E7D32',
+    color: '#4CAF50',
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -361,15 +368,16 @@ const estilos = StyleSheet.create({
   },
   textoResumo: {
     fontSize: 16,
-    color: '#666',
+    color: '#B0B0B0',
   },
   valorResumo: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#FFFFFF',
   },
   divisorResumo: {
     marginVertical: 12,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#333333',
   },
   linhaTotal: {
     flexDirection: 'row',
@@ -379,7 +387,7 @@ const estilos = StyleSheet.create({
   textoTotal: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#FFFFFF',
   },
   valorTotal: {
     fontSize: 20,
@@ -407,12 +415,12 @@ const estilos = StyleSheet.create({
   },
   textoVazio: {
     textAlign: 'center',
-    color: '#666',
+    color: '#B0B0B0',
     marginBottom: 8,
   },
   subtextoVazio: {
     textAlign: 'center',
-    color: '#999',
+    color: '#888',
     marginBottom: 24,
   },
   botaoContinuar: {

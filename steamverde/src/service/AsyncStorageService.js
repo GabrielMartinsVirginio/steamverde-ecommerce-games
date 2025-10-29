@@ -49,6 +49,38 @@ class AsyncStorageService {
       return false;
     }
   }
+
+  static async salvarDados(chave, dados) {
+    try {
+      const dadosJson = JSON.stringify(dados);
+      await AsyncStorage.setItem(chave, dadosJson);
+    } catch (error) {
+      console.error(`Erro ao salvar dados (${chave}):`, error);
+      throw new Error(`Falha ao salvar dados: ${chave}`);
+    }
+  }
+
+  static async obterDados(chave) {
+    try {
+      const dadosJson = await AsyncStorage.getItem(chave);
+      if (dadosJson !== null) {
+        return JSON.parse(dadosJson);
+      }
+      return null;
+    } catch (error) {
+      console.error(`Erro ao obter dados (${chave}):`, error);
+      return null;
+    }
+  }
+
+  static async removerDados(chave) {
+    try {
+      await AsyncStorage.removeItem(chave);
+    } catch (error) {
+      console.error(`Erro ao remover dados (${chave}):`, error);
+      throw new Error(`Falha ao remover dados: ${chave}`);
+    }
+  }
 }
 
 export default AsyncStorageService;
