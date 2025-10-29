@@ -145,6 +145,56 @@ class AutenticacaoService {
     const usuario = await this.buscarUsuarioLogado();
     return usuario !== null;
   }
+
+  static async atualizarUsuario(id, dadosAtualizados) {
+    try {
+      const usuarios = await this.buscarTodosUsuarios();
+      const indice = usuarios.findIndex(u => u.id === id);
+
+      if (indice === -1) {
+        return { sucesso: false, erro: 'Usuário não encontrado' };
+      }
+
+      if (dadosAtualizados.email) {
+        if (!Usuario.validarEmail(dadosAtualizados.email)) {
+          return { sucesso: false, erro: 'Email inválido' };
+        }
+
+        const emailJaExiste = usuarios.some(
+          u => u.id !== id && u.email.toLowerCase() === dadosAtualizados.email.toLowerCase()
+        );
+
+        if (emailJaExiste) {
+          return { sucesso: false, erro: 'Email já cadastrado' };
+        }
+      }
+
+      if (dadosAtualizados.nome) {
+        if (!Usuario.validarNome(dadosAtualizados.nome)) {
+          return { sucesso: false, erro: 'Nome deve ter pelo menos 3 caracteres' };
+        }
+      }
+
+      if (dadosAtualizados.senha) {
+        if (!Usuario.validarSenha(dadosAtualizados.senha)) {
+          return { sucesso: false, erro: 'Senha deve ter pelo menos 6 caracteres' };
+        }
+      }
+
+      usuarios[indice] = {
+        ...usuarios[indice],
+        ...dadosAtualizados,
+      };
+
+      await AsyncStorage.setItem(this.STORAGE_KEY, JSON.stringify(usuarios));
+      await AsyncStorage.setItem(this.USUARIO_LOGADO_KEY, JSON.stringify(usuarios[indice]));
+
+      return { sucesso: true, usuario: usuarios[indice] };
+    } catch (error) {
+      console.error('Erro ao atualizar usuário:', error);
+      return { sucesso: false, erro: 'Erro ao atualizar usuário' };
+    }
+  }
 }
 
 export default AutenticacaoService;
