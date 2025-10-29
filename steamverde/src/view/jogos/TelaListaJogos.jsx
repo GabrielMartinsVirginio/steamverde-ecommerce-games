@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useJogos } from '../../utils/useJogos';
 import { useCarrinhoContext } from '../components/authProvider/ProvedorCarrinho';
+import { useFavoritosContext } from '../components/authProvider/ProvedorFavoritos';
 import { useAuth } from '../components/authProvider/ProvedorAutenticacao';
 import FiltroJogos from '../components/common/FiltroJogos';
 
@@ -26,20 +27,22 @@ const TelaListaJogos = () => {
   const route = useRoute();
   const { jogos, carregando, buscarJogos, excluirJogo } = useJogos();
   const { adicionarAoCarrinho, verificarSeEstaNoCarrinho, calcularQuantidadeTotal } = useCarrinhoContext();
+  const { adicionarFavorito, removerFavorito, ehFavorito } = useFavoritosContext();
   const { ehAdmin } = useAuth();
   const [atualizando, setAtualizando] = useState(false);
   const [snackbar, setSnackbar] = useState({ visivel: false, mensagem: '' });
   
   const termoBuscaRecebido = route.params?.termoBusca;
+  const categoriaSelecionada = route.params?.categoriaSelecionada;
   const [jogosFiltrados, setJogosFiltrados] = useState([]);
   const [filtros, setFiltros] = useState({ 
-    categorias: [], 
+    categorias: categoriaSelecionada ? [categoriaSelecionada] : [], 
     precoMin: '', 
     precoMax: '', 
     ordenacao: 'nome' 
   });
   const [filtrosAplicados, setFiltrosAplicados] = useState({ 
-    categorias: [], 
+    categorias: categoriaSelecionada ? [categoriaSelecionada] : [], 
     precoMin: '', 
     precoMax: '', 
     ordenacao: 'nome' 
@@ -102,7 +105,18 @@ const TelaListaJogos = () => {
   useFocusEffect(
     React.useCallback(() => {
       carregarJogos();
-    }, [])
+      // Atualiza filtros quando recebe categoria da navegação
+      if (categoriaSelecionada) {
+        const novosFiltros = {
+          categorias: [categoriaSelecionada],
+          precoMin: '',
+          precoMax: '',
+          ordenacao: 'nome'
+        };
+        setFiltros(novosFiltros);
+        setFiltrosAplicados(novosFiltros);
+      }
+    }, [categoriaSelecionada])
   );
 
   useEffect(() => {
@@ -144,7 +158,18 @@ const TelaListaJogos = () => {
   };
 
   const navegarParaCarrinho = () => {
-    navigation.navigate('Carrinho');
+    // Navega de volta para a tela Home (que é o TabNavigator) e seleciona a tab Carrinho
+    navigation.navigate('Home', { screen: 'Carrinho' });
+  };
+
+  const toggleFavorito = async (jogo) => {
+    if (ehFavorito(jogo.id)) {
+      const resultado = await removerFavorito(jogo.id);
+      setSnackbar({ visivel: true, mensagem: resultado.mensagem });
+    } else {
+      const resultado = await adicionarFavorito(jogo);
+      setSnackbar({ visivel: true, mensagem: resultado.mensagem });
+    }
   };
 
   const confirmarExclusao = (jogo) => {
@@ -185,6 +210,14 @@ const TelaListaJogos = () => {
           resizeMode="cover"
         />
       )}
+      <IconButton
+        icon={ehFavorito(jogo.id) ? "heart" : "heart-outline"}
+        iconColor={ehFavorito(jogo.id) ? "#f44336" : "#FFFFFF"}
+        containerColor="rgba(0, 0, 0, 0.6)"
+        size={20}
+        style={estilos.botaoFavorito}
+        onPress={() => toggleFavorito(jogo)}
+      />
       {ehAdmin() && (
         <IconButton
           icon="delete"
@@ -370,6 +403,13 @@ const estilos = StyleSheet.create({
     backgroundColor: '#1E1E1E',
     overflow: 'hidden',
     position: 'relative',
+  },
+  botaoFavorito: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    zIndex: 10,
+    elevation: 5,
   },
   botaoExcluir: {
     position: 'absolute',
