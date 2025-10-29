@@ -9,6 +9,8 @@ import NavegacaoBottomTabs from './NavegacaoBottomTabs';
 import TelaListaJogos from '../../jogos/TelaListaJogos';
 import TelaCadastroJogo from '../../jogos/TelaCadastroJogo';
 import TelaDetalheJogo from '../../jogos/TelaDetalheJogo';
+import TelaEditarPerfil from '../../perfil/TelaEditarPerfil';
+import TelaSobre from '../../perfil/TelaSobre';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,6 +30,8 @@ const NavegacaoPrincipal = () => {
         <Stack.Screen name="ListaJogos" component={TelaListaJogos} />
         <Stack.Screen name="CadastroJogo" component={TelaCadastroJogo} />
         <Stack.Screen name="DetalheJogo" component={TelaDetalheJogo} />
+        <Stack.Screen name="EditarPerfil" component={TelaEditarPerfil} />
+        <Stack.Screen name="Sobre" component={TelaSobre} />
       </Stack.Navigator>
     </NavigationContainer>
   );
