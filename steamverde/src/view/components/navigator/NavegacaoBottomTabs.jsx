@@ -7,7 +7,7 @@ import Home from '../../Home';
 import TelaCategorias from '../../jogos/TelaCategorias';
 import TelaCarrinho from '../../carrinho/TelaCarrinho';
 import TelaFavoritos from '../../favoritos/TelaFavoritos';
-import TelaPerfil from '../../perfil/TelaPerfil';
+import TelaConfiguracoes from '../../perfil/TelaConfiguracoes';
 
 import { useCarrinhoContext } from '../authProvider/ProvedorCarrinho';
 import { useFavoritosContext } from '../authProvider/ProvedorFavoritos';
@@ -113,7 +113,7 @@ const NavegacaoBottomTabs = () => {
       />
       <Tab.Screen 
         name="Configuracoes" 
-        component={TelaPerfil}
+        component={TelaConfiguracoes}
         options={{
           tabBarLabel: 'Configurações',
         }}
