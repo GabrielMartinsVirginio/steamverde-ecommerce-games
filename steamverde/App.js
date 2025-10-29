@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import NavegacaoPrincipal from './src/view/components/navigator/NavegacaoPrincipal';
 import ProvedorAutenticacao from './src/view/components/authProvider/ProvedorAutenticacao';
 import ProvedorCarrinho from './src/view/components/authProvider/ProvedorCarrinho';
+import ProvedorFavoritos from './src/view/components/authProvider/ProvedorFavoritos';
 
 const temaDark = {
   ...MD3DarkTheme,
@@ -27,8 +28,10 @@ export default function App() {
       <PaperProvider theme={temaDark}>
         <ProvedorAutenticacao>
           <ProvedorCarrinho>
-            <NavegacaoPrincipal />
-            <StatusBar style="light" />
+            <ProvedorFavoritos>
+              <NavegacaoPrincipal />
+              <StatusBar style="light" />
+            </ProvedorFavoritos>
           </ProvedorCarrinho>
         </ProvedorAutenticacao>
       </PaperProvider>
