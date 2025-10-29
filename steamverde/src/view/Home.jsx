@@ -57,6 +57,16 @@ const Home = () => {
     navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
   };
 
+  const navegarPara = (rota) => {
+    if (rota === 'Carrinho') {
+      // Navega para a tab Carrinho dentro do TabNavigator atual
+      navigation.navigate('Carrinho');
+    } else {
+      // Outras rotas navegam normalmente
+      navigation.navigate(rota);
+    }
+  };
+
   const atalhos = [
     {
       titulo: 'Produtos',
@@ -71,13 +81,6 @@ const Home = () => {
       icone: 'cart',
       cor: '#388E3C',
       rota: 'Carrinho'
-    },
-    {
-      titulo: 'Perfil',
-      subtitulo: 'Configurações da conta',
-      icone: 'account-circle',
-      cor: '#7B1FA2',
-      rota: 'Perfil'
     }
   ];
 
@@ -146,7 +149,7 @@ const Home = () => {
             <Card 
               key={index}
               style={[estilos.cartaoAtalho, { backgroundColor: atalho.cor + '15' }]} 
-              onPress={() => navigation.navigate(atalho.rota)}
+              onPress={() => navegarPara(atalho.rota)}
               mode="elevated"
             >
               <Card.Content style={estilos.conteudoAtalho}>
