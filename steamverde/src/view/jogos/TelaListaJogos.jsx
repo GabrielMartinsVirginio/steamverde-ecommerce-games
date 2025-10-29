@@ -105,7 +105,6 @@ const TelaListaJogos = () => {
   useFocusEffect(
     React.useCallback(() => {
       carregarJogos();
-      // Atualiza filtros quando recebe categoria da navegação
       if (categoriaSelecionada) {
         const novosFiltros = {
           categorias: [categoriaSelecionada],
@@ -158,7 +157,6 @@ const TelaListaJogos = () => {
   };
 
   const navegarParaCarrinho = () => {
-    // Navega de volta para a tela Home (que é o TabNavigator) e seleciona a tab Carrinho
     navigation.navigate('Home', { screen: 'Carrinho' });
   };
 

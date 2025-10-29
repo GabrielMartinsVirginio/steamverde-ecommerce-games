@@ -11,7 +11,6 @@ const TelaSplash = () => {
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Animação de entrada
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -26,7 +25,6 @@ const TelaSplash = () => {
       }),
     ]).start();
 
-    // Animação de rotação contínua para o loading
     Animated.loop(
       Animated.timing(rotateAnim, {
         toValue: 1,

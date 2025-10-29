@@ -29,7 +29,6 @@ const TelaDetalheJogo = () => {
   const { ehAdmin } = useAuth();
   const [snackbar, setSnackbar] = useState({ visivel: false, mensagem: '' });
 
-  // Jogo padrão caso não seja passado parâmetro
   const jogoDefault = {
     id: '1',
     nome: 'Cyberpunk 2077',

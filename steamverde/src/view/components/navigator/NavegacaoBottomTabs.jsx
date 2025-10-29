@@ -60,7 +60,6 @@ const NavegacaoBottomTabs = () => {
               break;
           }
 
-          // Renderiza ícone com badge
           return (
             <View>
               <Icon 

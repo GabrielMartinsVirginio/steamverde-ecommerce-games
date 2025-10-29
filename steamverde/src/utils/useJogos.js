@@ -213,13 +213,11 @@ export const useJogos = () => {
         const operacaoCarregar = AsyncStorageService.carregarJogos();
         const jogosSalvos = await TratamentoErroService.simularTimeoutOperacao(operacaoCarregar, 5000);
         
-        // Verifica se os jogos salvos têm o campo 'imagem'
         const jogosTemImagem = jogosSalvos.length > 0 && jogosSalvos.every(jogo => jogo.hasOwnProperty('imagem'));
         
         if (jogosSalvos.length > 0 && jogosTemImagem) {
           setJogos(jogosSalvos);
         } else {
-          // Se não tiverem imagens, reseta com os jogos iniciais atualizados
           console.log('Atualizando jogos com imagens...');
           setJogos(jogosIniciais);
           await AsyncStorageService.salvarJogos(jogosIniciais);
